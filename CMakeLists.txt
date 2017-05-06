@@ -1,0 +1,62 @@
+project ( coffeeimgui )
+cmake_minimum_required(VERSION 3.1)
+
+set ( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin )
+
+set ( COFFEE_DESKTOP_DIRECTORY "${CMAKE_SOURCE_DIR}/desktop" )
+set ( CMAKE_PACKAGED_OUTPUT_PREFIX packaged )
+set ( COFFEE_PACKAGE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_PACKAGED_OUTPUT_PREFIX}" )
+set ( COFFEE_DEPLOY_DIRECTORY "${PROJECT_BINARY_DIR}/deploy" )
+set ( COFFEE_SOURCE_TEMPLATE_DIRECTORY "${CMAKE_SOURCE_DIR}/internal/templates" )
+
+set ( CMAKE_MODULE_PATH
+    ${CMAKE_MODULE_PATH}
+    ${CMAKE_SOURCE_DIR}/cmake/Find
+    ${CMAKE_SOURCE_DIR}/cmake/Modules
+    ${CMAKE_SOURCE_DIR}/cmake/Packaging
+    )
+
+if(NOT WIN32)
+    set ( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib )
+else()
+    set ( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin )
+endif()
+
+include ( BuildFlags )
+include ( BuildFunctions )
+include ( PackagingOptions )
+include ( TestingOptions )
+
+option ( BUILD_TESTS "Build unit tests" ON )
+
+find_package ( Coffee REQUIRED )
+find_package ( StandardLibs REQUIRED )
+find_package ( SDL2 REQUIRED )
+
+set ( SRCS
+    src/imgui_binding.cpp
+    )
+
+set ( LIBS
+    ${COFFEE_CORE_LIBRARY};
+    ${COFFEE_GLEAM_COMMON_LIBRARY};
+    ${COFFEE_ANDROID_LIBRARY};
+    ${STANDARDLIBS_LIBRARIES};
+    ${SDL2_LIBRARY};${SDL2_LIBRARIES}
+    )
+
+include_directories ( "${COFFEE_INCLUDE_DIR};${CMAKE_SOURCE_DIR}/include" )
+
+coffee_add_library ( CoffeeImgui
+    "${SRCS}" "${LIBS}"
+    "${CMAKE_SOURCE_DIR}/include/coffee/imgui"
+    )
+
+coffee_add_application_longerer(
+    CoffeeImguiTest
+    "Coffee Imgui Test" "Coffee" "1"
+    "???" "???"
+    "src/main.cpp" "CoffeeImgui"
+    "" "" ""
+    "" ""
+    )
