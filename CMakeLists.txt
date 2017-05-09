@@ -33,30 +33,41 @@ find_package ( Coffee REQUIRED )
 find_package ( StandardLibs REQUIRED )
 find_package ( SDL2 REQUIRED )
 
+set ( IMGUI_DIR
+    ${CMAKE_SOURCE_DIR}/libs/imgui
+    )
+
 set ( SRCS
     src/imgui_binding.cpp
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
     )
 
 set ( LIBS
-    ${COFFEE_CORE_LIBRARY};
     ${COFFEE_GLEAM_COMMON_LIBRARY};
+    ${COFFEE_CORE_LIBRARY};
     ${COFFEE_ANDROID_LIBRARY};
     ${STANDARDLIBS_LIBRARIES};
     ${SDL2_LIBRARY};${SDL2_LIBRARIES}
     )
 
-include_directories ( "${COFFEE_INCLUDE_DIR};${CMAKE_SOURCE_DIR}/include" )
+include_directories (
+    ${COFFEE_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/libs/imgui
+    ${SDL2_INCLUDE_DIR}
+    )
 
-coffee_add_library ( CoffeeImgui
+coffee_add_library ( CoffeeImGui
     "${SRCS}" "${LIBS}"
     "${CMAKE_SOURCE_DIR}/include/coffee/imgui"
     )
 
 coffee_add_application_longerer(
-    CoffeeImguiTest
-    "Coffee Imgui Test" "Coffee" "1"
+    CoffeeImGuiTest
+    "Coffee ImGui Test" "Coffee" "1"
     "???" "???"
-    "src/main.cpp" "CoffeeImgui"
+    "src/main.cpp" "CoffeeImGui"
     "" "" ""
     "" ""
     )
