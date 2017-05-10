@@ -281,7 +281,6 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
             bool flag = ev.mod & CIMouseButtonEvent::Pressed;
             io->MouseDown[ev.btn - 1] = flag;
             io->MouseClickedPos[ev.btn - 1] = {ev.pos.x, ev.pos.y};
-            fprintf(stderr, "Click status: %i:%i\n", ev.btn-1,flag);
         }
         break;
     }

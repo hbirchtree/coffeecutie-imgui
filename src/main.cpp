@@ -20,6 +20,8 @@ struct RData
     bool open = false;
     bool marked = false;
     CString input;
+
+    bool display_gui = true;
 };
 using R = Display::CSDL2Renderer;
 using Vis = Display::CDProperties;
@@ -42,18 +44,44 @@ void loop(R& r, RData* data)
 {
     GFX::DefaultFramebuffer().clear(0, {0.1f, 0.1f, 0.1f, 1.0});
 
+    if(data->display_gui)
+    {
     CImGui::NewFrame(r, r);
 
     ImGui::Begin("Hello!", &data->open, 0);
+
+    ImGui::BeginMainMenuBar();
+
+    ImGui::EndMainMenuBar();
+
     ImGui::Text("Hello, world!");
-    ImGui::Checkbox("Test", &data->marked);
     for(float i=0;i<1;i+=0.2)
         ImGui::ProgressBar(CMath::fmod(r.contextTime()+i, 1.0), {0, 1}, "HAHA");
-    ImGui::InputText("Text", &data->input[0], data->input.size(), 0, nullptr, nullptr);
+
+    ImGuiInputTextFlags text_flags = 0;
+    ImGui::BeginChild("Test child", {100,100}, true, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Checkbox("Test", &data->marked);
+    if(!data->marked)
+        text_flags = ImGuiInputTextFlags_ReadOnly;
+    ImGui::InputText("Text", &data->input[0], data->input.size(),
+            text_flags, nullptr, nullptr);
+
+    ImGui::EndChild();
+
     ImGui::End();
+
+    ImGui::Begin("Event handlers");
+    for(auto const& e : *r.getEventHandlersI())
+        ImGui::Text("%s", e.name);
+    for(auto const& e : *r.getEventHandlersD())
+        ImGui::Text("%s", e.name);
+    ImGui::End();
+    }
+
     r.pollEvents();
 
-    CImGui::EndFrame();
+    if(data->display_gui)
+        CImGui::EndFrame();
 
     r.swapBuffers();
 }
@@ -70,6 +98,17 @@ int32 coffeeimgui_main(int32, cstring_w*)
     cDebug("Hello World!");
 
     R renderer;
+
+    auto disable_imgui = [](void* u, CIEvent const& ev, c_cptr data)
+    {
+        if(ev.type == CIEvent::Keyboard)
+        {
+            auto e = *(CIKeyEvent const*)data;
+            auto render_data = (RData*)u;
+            if(e.key == CK_F9 && e.mod & CIKeyEvent::PressedModifier)
+                render_data->display_gui = !render_data->display_gui;
+        }
+    };
 
     renderer.installEventHandler(
     {
@@ -93,6 +132,13 @@ int32 coffeeimgui_main(int32, cstring_w*)
 
     Vis visual = Display::GetDefaultVisual<GFX>();
     RData render_data;
+
+    renderer.installEventHandler(
+    {
+                    disable_imgui,
+                    "ImGui toggle switch on F9",
+                    &render_data
+                });
 
     ELD eld_data;
     eld_data.setup = setup;
