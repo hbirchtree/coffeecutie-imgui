@@ -25,8 +25,9 @@ IMGUI_API bool        CreateDeviceObjects();
 namespace Widgets{
 
 using FrameCounter = Function<void(EventApplication const&)>;
+using EventHandlerList = Function<void(EventApplication&)>;
 
-inline FrameCounter FramerateStats(bigscalar interval)
+inline FrameCounter GetFramerateStats(bigscalar interval)
 {
     return [=](EventApplication const& event)
     {
@@ -38,8 +39,19 @@ inline FrameCounter FramerateStats(bigscalar interval)
 
         prev_ms = event.contextTime() - prev_time_always;
 
+        ImGui::BeginMainMenuBar();
         ImGui::Text("frametime=%f ms, framerate=%u FPS",
                     prev_ms, frame_count_display);
+        ImGui::EndMainMenuBar();
+
+#define FRAMERATE_FRAC(ms, fps) (ms < (1. / fps)) ? 1.0 : (1. / fps) / ms
+
+        ImGui::Begin("Framerate goals");
+        ImGui::ProgressBar(FRAMERATE_FRAC(prev_ms, 60.), {-1, 0}, "60");
+        ImGui::ProgressBar(FRAMERATE_FRAC(prev_ms, 120.), {-1, 0}, "120");
+        ImGui::End();
+
+#undef FRAMERATE_FRAC
 
         frame_count ++;
 
@@ -50,6 +62,27 @@ inline FrameCounter FramerateStats(bigscalar interval)
             frame_count = 0;
             next_time = event.contextTime() + interval;
         }
+    };
+}
+
+inline EventHandlerList GetEventHandlerList()
+{
+    return [](EventApplication& r)
+    {
+        ImGui::Begin("Event handlers");
+
+        for(auto const& e : *r.getEventHandlersI())
+        {
+            CString ptr = StrUtil::pointerify(e.user_ptr);
+            ImGui::Text("%s : %s", e.name, ptr.c_str());
+        }
+        for(auto const& e : *r.getEventHandlersD())
+        {
+            CString ptr = StrUtil::pointerify(e.user_ptr);
+            ImGui::Text("%s : %s", e.name, ptr.c_str());
+        }
+
+        ImGui::End();
     };
 }
 

@@ -24,6 +24,7 @@ struct RData
     bool display_gui = true;
 
     CImGui::Widgets::FrameCounter counter;
+    CImGui::Widgets::EventHandlerList elist;
 };
 using R = Display::CSDL2Renderer;
 using Vis = Display::CDProperties;
@@ -40,7 +41,8 @@ void setup(R& r, RData* data)
     CImGui::Init(r,r);
     data->input.resize(100);
 
-    data->counter = CImGui::Widgets::FramerateStats(1.);
+    data->counter = CImGui::Widgets::GetFramerateStats(1.);
+    data->elist = CImGui::Widgets::GetEventHandlerList();
 }
 
 void loop(R& r, RData* data)
@@ -53,13 +55,11 @@ void loop(R& r, RData* data)
 
         ImGui::Begin("Hello!", &data->open, 0);
 
-        ImGui::BeginMainMenuBar();
         data->counter(r);
-        ImGui::EndMainMenuBar();
 
         ImGui::Text("Hello, world!");
         for(float i=0;i<1;i+=0.2)
-            ImGui::ProgressBar(CMath::fmod(r.contextTime()+i, 1.0), {0, 1}, "HAHA");
+            ImGui::ProgressBar(CMath::fmod(r.contextTime()+i, 1.0), {-1, 1}, "HAHA");
 
         ImGuiInputTextFlags text_flags = 0;
         ImGui::BeginChild("Test child", {100,100}, true, ImGuiWindowFlags_AlwaysAutoResize);
@@ -73,13 +73,7 @@ void loop(R& r, RData* data)
 
         ImGui::End();
 
-        ImGui::Begin("Event handlers");
-        for(auto const& e : *r.getEventHandlersI())
-            ImGui::Text("%s", e.name);
-        for(auto const& e : *r.getEventHandlersD())
-            ImGui::Text("%s", e.name);
-        ImGui::End();
-
+        data->elist(r);
     }
 
     r.pollEvents();
@@ -156,6 +150,8 @@ int32 coffeeimgui_main(int32, cstring_w*)
     eld_data.cleanup = cleanup;
     eld_data.renderer = &renderer;
     eld_data.data = &render_data;
+
+    visual.gl.flags |= Display::GLProperties::GLVSync;
 
     CString err_s;
     R::execEventLoop(eld_data, visual, err_s);
