@@ -22,5 +22,38 @@ IMGUI_API void        EndFrame();
 IMGUI_API void        InvalidateDeviceObjects();
 IMGUI_API bool        CreateDeviceObjects();
 
+namespace Widgets{
+
+using FrameCounter = Function<void(EventApplication const&)>;
+
+inline FrameCounter FramerateStats(bigscalar interval)
+{
+    return [=](EventApplication const& event)
+    {
+        static bigscalar next_time;
+        static bigscalar prev_time_always;
+        static bigscalar prev_ms;
+        static u32 frame_count;
+        static u32 frame_count_display;
+
+        prev_ms = event.contextTime() - prev_time_always;
+
+        ImGui::Text("frametime=%f ms, framerate=%u FPS",
+                    prev_ms, frame_count_display);
+
+        frame_count ++;
+
+        prev_time_always = event.contextTime();
+        if(event.contextTime() >= next_time)
+        {
+            frame_count_display = frame_count;
+            frame_count = 0;
+            next_time = event.contextTime() + interval;
+        }
+    };
+}
+
+}
+
 }
 }

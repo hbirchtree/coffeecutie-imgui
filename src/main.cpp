@@ -22,6 +22,8 @@ struct RData
     CString input;
 
     bool display_gui = true;
+
+    CImGui::Widgets::FrameCounter counter;
 };
 using R = Display::CSDL2Renderer;
 using Vis = Display::CDProperties;
@@ -37,8 +39,9 @@ void setup(R& r, RData* data)
 
     CImGui::Init(r,r);
     data->input.resize(100);
-}
 
+    data->counter = CImGui::Widgets::FramerateStats(1.);
+}
 
 void loop(R& r, RData* data)
 {
@@ -51,7 +54,7 @@ void loop(R& r, RData* data)
         ImGui::Begin("Hello!", &data->open, 0);
 
         ImGui::BeginMainMenuBar();
-
+        data->counter(r);
         ImGui::EndMainMenuBar();
 
         ImGui::Text("Hello, world!");
@@ -76,6 +79,7 @@ void loop(R& r, RData* data)
         for(auto const& e : *r.getEventHandlersD())
             ImGui::Text("%s", e.name);
         ImGui::End();
+
     }
 
     r.pollEvents();
@@ -129,6 +133,12 @@ int32 coffeeimgui_main(int32, cstring_w*)
                     nullptr
                 });
 
+    renderer.installEventHandler(
+    {
+                   Display::EventHandlers::WindowManagerFullscreen<R>,
+                    "Window fullscreen trigger on F11 and Alt-Enter",
+                    &renderer
+                });
 
     Vis visual = Display::GetDefaultVisual<GFX>();
     RData render_data;
