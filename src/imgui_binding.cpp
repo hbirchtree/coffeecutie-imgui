@@ -58,16 +58,6 @@ static UqPtr<ImGuiData> im_data = nullptr;
 // - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
 static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 {
-    struct HandleExtract{
-        union{
-            void* ptr;
-            struct{
-                u32 lo;
-                u32 hi;
-            };
-        };
-    };
-
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
     int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
@@ -84,9 +74,8 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
     depth.m_test = false;
     GFX::VIEWSTATE view_(1);
 
-    view_.m_view[0] = {0,0,fb_width,fb_height};
-//    view_.m_scissor[0] = {0,0,fb_width,fb_height};
-    view_.m_depth[0] = {0.5, 1000.};
+    view_.m_view.clear();
+    view_.m_depth.clear();
 
     GFX::SetBlendState(blend);
     GFX::SetRasterizerState(raster);
@@ -148,11 +137,15 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
                                      };
                 GFX::SetViewportState(view_);
                 handle.texture = ExtractIntegerPtr<u32>(cmd->TextureId);
+                /* TODO: Improve this by using batching structure, D_DATA arrays */
                 GFX::Draw(im_data->pipeline, pipstate, im_data->attributes, dc, dd);
             }
             dd.m_eoff += cmd->ElemCount;
         }
     }
+
+    view_.m_scissor[0] = {0, 0, fb_width, fb_height};
+    GFX::SetViewportState(view_);
 
     /*
 
@@ -386,6 +379,7 @@ bool Coffee::CImGui::CreateDeviceObjects()
         tex.m_off = offsetof(ImDrawVert,uv);
         col.m_off = offsetof(ImDrawVert,col);
         col.m_type = TypeEnum::UByte;
+        col.m_flags = GFX::AttributePacked | GFX::AttributeNormalization;
 
         a.addAttribute(pos);
         a.addAttribute(tex);

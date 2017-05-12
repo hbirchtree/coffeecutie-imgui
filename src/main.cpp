@@ -30,13 +30,13 @@ using ELD = Display::EventLoopData<R,RData>;
 
 void setup(R& r, RData* data)
 {
-     data->load_api = GFX::GetLoadAPI();
+    data->load_api = GFX::GetLoadAPI();
 
-     if(!data->load_api(PlatformData::IsDebug()))
-         r.closeWindow();
+    if(!data->load_api(PlatformData::IsDebug()))
+        r.closeWindow();
 
-     CImGui::Init(r,r);
-     data->input.resize(100);
+    CImGui::Init(r,r);
+    data->input.resize(100);
 }
 
 
@@ -46,36 +46,36 @@ void loop(R& r, RData* data)
 
     if(data->display_gui)
     {
-    CImGui::NewFrame(r, r);
+        CImGui::NewFrame(r, r);
 
-    ImGui::Begin("Hello!", &data->open, 0);
+        ImGui::Begin("Hello!", &data->open, 0);
 
-    ImGui::BeginMainMenuBar();
+        ImGui::BeginMainMenuBar();
 
-    ImGui::EndMainMenuBar();
+        ImGui::EndMainMenuBar();
 
-    ImGui::Text("Hello, world!");
-    for(float i=0;i<1;i+=0.2)
-        ImGui::ProgressBar(CMath::fmod(r.contextTime()+i, 1.0), {0, 1}, "HAHA");
+        ImGui::Text("Hello, world!");
+        for(float i=0;i<1;i+=0.2)
+            ImGui::ProgressBar(CMath::fmod(r.contextTime()+i, 1.0), {0, 1}, "HAHA");
 
-    ImGuiInputTextFlags text_flags = 0;
-    ImGui::BeginChild("Test child", {100,100}, true, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::Checkbox("Test", &data->marked);
-    if(!data->marked)
-        text_flags = ImGuiInputTextFlags_ReadOnly;
-    ImGui::InputText("Text", &data->input[0], data->input.size(),
-            text_flags, nullptr, nullptr);
+        ImGuiInputTextFlags text_flags = 0;
+        ImGui::BeginChild("Test child", {100,100}, true, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Checkbox("Test", &data->marked);
+        if(!data->marked)
+            text_flags = ImGuiInputTextFlags_ReadOnly;
+        ImGui::InputText("Text", &data->input[0], data->input.size(),
+                text_flags, nullptr, nullptr);
 
-    ImGui::EndChild();
+        ImGui::EndChild();
 
-    ImGui::End();
+        ImGui::End();
 
-    ImGui::Begin("Event handlers");
-    for(auto const& e : *r.getEventHandlersI())
-        ImGui::Text("%s", e.name);
-    for(auto const& e : *r.getEventHandlersD())
-        ImGui::Text("%s", e.name);
-    ImGui::End();
+        ImGui::Begin("Event handlers");
+        for(auto const& e : *r.getEventHandlersI())
+            ImGui::Text("%s", e.name);
+        for(auto const& e : *r.getEventHandlersD())
+            ImGui::Text("%s", e.name);
+        ImGui::End();
     }
 
     r.pollEvents();
