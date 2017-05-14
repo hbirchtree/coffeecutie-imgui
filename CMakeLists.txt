@@ -11,6 +11,7 @@ set ( COFFEE_SOURCE_TEMPLATE_DIRECTORY "${CMAKE_SOURCE_DIR}/internal/templates" 
 
 set ( CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
+    ${CMAKE_SOURCE_DIR}/cmake/Find_Android
     ${CMAKE_SOURCE_DIR}/cmake/Find
     ${CMAKE_SOURCE_DIR}/cmake/Modules
     ${CMAKE_SOURCE_DIR}/cmake/Packaging
@@ -57,6 +58,8 @@ include_directories (
     ${CMAKE_SOURCE_DIR}/libs/imgui
     ${SDL2_INCLUDE_DIR}
     )
+
+add_definitions(-DCOFFEE_IMGUI_USE_GLEAM)
 
 coffee_add_library ( CoffeeImGui
     "${SRCS}" "${LIBS}"

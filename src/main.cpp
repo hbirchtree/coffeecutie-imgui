@@ -12,19 +12,24 @@
 
 using namespace Coffee;
 
+#if defined(COFFEE_IMGUI_USE_GLEAM)
 using GFX = RHI::GLEAM::GLEAM_API;
+#else
+using GFX = RHI::NullAPI;
+#endif
 
 struct RData
 {
     GFX::API_CONTEXT load_api;
-    bool open = false;
-    bool marked = false;
     CString input;
-
-    bool display_gui = true;
-
     CImGui::Widgets::FrameCounter counter;
     CImGui::Widgets::EventHandlerList elist;
+
+    bool open = false;
+    bool marked = false;
+    bool display_gui = true;
+
+    u8 padding[5];
 };
 using R = Display::CSDL2Renderer;
 using Vis = Display::CDProperties;
@@ -33,23 +38,35 @@ using ELD = Display::EventLoopData<R,RData>;
 
 void setup(R& r, RData* data)
 {
+    cDebug("Running setup");
     data->load_api = GFX::GetLoadAPI();
 
     if(!data->load_api(PlatformData::IsDebug()))
         r.closeWindow();
 
-    CImGui::Init(r,r);
+    if(!CImGui::Init(r,r))
+    {
+        cWarning("Failed to init ImGui");
+        r.closeWindow();
+    }
     data->input.resize(100);
+
+    data->display_gui = true;
 
     data->counter = CImGui::Widgets::GetFramerateStats(1.);
     data->elist = CImGui::Widgets::GetEventHandlerList();
+
+    cDebug("Window manager: {0}", r.windowLibrary());
 }
 
 void loop(R& r, RData* data)
 {
-    GFX::DefaultFramebuffer().clear(0, {0.1f, 0.1f, 0.1f, 1.0});
+    GFX::DefaultFramebuffer().clear(0, {0.3f, 0.1f, 0.1f, 1.0});
 
-    if(data->display_gui)
+    bool enable_gui_now = data->display_gui;
+    bool frame_prepared = false;
+
+    if(enable_gui_now)
     {
         CImGui::NewFrame(r, r);
 
@@ -74,11 +91,12 @@ void loop(R& r, RData* data)
         ImGui::End();
 
         data->elist(r);
+        frame_prepared = true;
     }
 
     r.pollEvents();
 
-    if(data->display_gui)
+    if(enable_gui_now && frame_prepared)
         CImGui::EndFrame();
 
     r.swapBuffers();
@@ -150,8 +168,6 @@ int32 coffeeimgui_main(int32, cstring_w*)
     eld_data.cleanup = cleanup;
     eld_data.renderer = &renderer;
     eld_data.data = &render_data;
-
-    visual.gl.flags |= Display::GLProperties::GLVSync;
 
     CString err_s;
     R::execEventLoop(eld_data, visual, err_s);

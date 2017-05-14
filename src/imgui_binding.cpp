@@ -13,7 +13,11 @@
 using namespace Coffee;
 using namespace Display;
 
+#if defined(COFFEE_IMGUI_USE_GLEAM)
 using GFX = RHI::GLEAM::GLEAM_API;
+#else
+using GFX = RHI::NullAPI;
+#endif
 
 // Data
 static double       g_Time = 0.0;
@@ -28,6 +32,8 @@ static GLuint       g_FontTexture = 0;
 struct ImGuiData
 {
     ImGuiData():
+        attributes(),
+        pipeline(),
         vertices(ResourceAccess::Streaming|ResourceAccess::WriteOnly, 0),
         elements(ResourceAccess::Streaming|ResourceAccess::WriteOnly, 0),
         fonts(PixFmt::RGBA8)
@@ -136,7 +142,7 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
                                       (int)(cmd->ClipRect.w - cmd->ClipRect.y)
                                      };
                 GFX::SetViewportState(view_);
-                handle.texture = ExtractIntegerPtr<u32>(cmd->TextureId);
+                handle.glTexHandle() = ExtractIntegerPtr<u32>(cmd->TextureId);
                 /* TODO: Improve this by using batching structure, D_DATA arrays */
                 GFX::Draw(im_data->pipeline, pipstate, im_data->attributes, dc, dd);
             }
@@ -175,13 +181,18 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
     sm.alloc();
     sm.setFiltering(Filtering::Linear, Filtering::Linear);
 
-    io.Fonts->TexID = FitIntegerInPtr(s.m_handle);
+    io.Fonts->TexID = FitIntegerInPtr(s.glTexHandle());
 }
 
 bool Coffee::CImGui::CreateDeviceObjects()
 {
     constexpr cstring vertex_shader =
+#if defined(COFFEE_GLEAM_DESKTOP) && 0
         "#version 330\n"
+#else
+        "#version 300 es\n"
+        "precision lowp float;\n"
+#endif
         "uniform mat4 ProjMtx;\n"
         "in vec2 Position;\n"
         "in vec2 UV;\n"
@@ -196,7 +207,12 @@ bool Coffee::CImGui::CreateDeviceObjects()
         "}\n";
 
     constexpr cstring fragment_shader =
+#if defined(COFFEE_GLEAM_DESKTOP) && 0
         "#version 330\n"
+#else
+        "#version 300 es\n"
+        "precision lowp float;\n"
+#endif
         "uniform sampler2D Texture;\n"
         "in vec2 Frag_UV;\n"
         "in vec4 Frag_Color;\n"
@@ -294,9 +310,12 @@ bool Coffee::CImGui::CreateDeviceObjects()
 
 void    Coffee::CImGui::InvalidateDeviceObjects()
 {
-    im_data->vertices.dealloc();
-    im_data->elements.dealloc();
-    im_data->attributes.dealloc();
+    if(im_data)
+    {
+        im_data->vertices.dealloc();
+        im_data->elements.dealloc();
+        im_data->attributes.dealloc();
+    }
 }
 
 template<typename T>
