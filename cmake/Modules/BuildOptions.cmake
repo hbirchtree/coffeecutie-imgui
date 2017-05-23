@@ -4,6 +4,11 @@
 
 option ( COFFEE_GENERATE_LIBRARIES "Whether any source should be compiled" ON )
 option ( GENERATE_PROGRAMS "Whether examples should be built" ON )
+option ( GENERATE_EXAMPLES "Whether examples aside from unit tests should be built" ON )
+option ( GENERATE_TESTS "Whether unit tests should be built" ON )
+if(NOT WIN32 AND NOT WIN_UWP)
+    option ( BUILD_COVERAGE "Run coverage tests" OFF )
+endif()
 
 if("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     option ( COFFEE_GENERATE_APPIMAGE "Generate AppImage packages" OFF )
@@ -13,8 +18,6 @@ endif()
 
 # Generates Doxygen documentation, requires Doxygen installed in PATH
 option ( COFFEE_DOCS "Generate documentation" OFF )
-
-option ( COFFEE_TESTS "Build unit tests" ON )
 
 option ( SKIP_HIGHMEM_TESTS "Skip high-memory tests" OFF )
 option ( SKIP_LINKAGE_TEST "Skip test of dynamic linking" ON )
@@ -54,6 +57,19 @@ option ( COFFEE_BUILD_STATIC "Build statically linked binaries" ON )
 
 # Whether to enable the GLES renderer, will replace desktop GL renderer
 option ( COFFEE_BUILD_GLES "Build with GLES 3.0 renderer instead of desktop GL" OFF)
+
+if(WIN32 OR WIN_UWP)
+	set ( ANGLE_OPT ON )
+	if(WIN32)
+		set ( ANGLE_OPT OFF )
+	endif()
+
+	option ( COFFEE_BUILD_ANGLE "Build with OpenGL ES support provided by MS ANGLE" ${ANGLE_OPT} )
+endif()
+
+if( COFFEE_BUILD_ANGLE )
+	message ( "-- Building ANGLE as OpenGL ES provider" )
+endif()
 
 if(NOT COFFEE_BUILD_GLES)
     add_definitions("-DCOFFEE_GLEAM_DESKTOP")

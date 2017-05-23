@@ -85,8 +85,6 @@ endif()
 if(ANDROID)
     # Add the Android logging library, as well as android and GLESv*
     list ( APPEND CORE_EXTRA_LIBRARIES
-        # Shim functions for JNI
-        AndroidCore
         # Logging and Android functions
         log android
         # OpenGL ES
@@ -141,6 +139,16 @@ if(WIN32)
          Ws2_32
          wbemuuid
           )
+
+	if(COFFEE_BUILD_ANGLE)
+		find_package( ANGLE REQUIRED )
+		list ( APPEND CORE_EXTRA_LIBRARIES
+			${ANGLE_LIBRARIES}
+			)
+		list ( APPEND CORE_INCLUDE_DIR
+			${ANGLE_INCLUDE_DIR}
+			)
+	endif()
 endif()
 
 if(NACL)

@@ -5,8 +5,6 @@
 # This find-script will make it easier to add several libraries for external use 
 #
 
-set ( COFFEE_ROOT_DIR "${COFFEE_ROOT_DIR}" CACHE PATH "" )
-
 set ( COFFEE_SEARCH_PATHS
     /usr/local
     /usr
@@ -15,8 +13,8 @@ set ( COFFEE_SEARCH_PATHS
     ~/Library/Frameworks
     /Library/Frameworks
 
-    ${COFFEE_ROOT_DIR}
-    $ENV{COFFEE_ROOT_DIR}
+    "${COFFEE_ROOT_DIR}"
+    "$ENV{COFFEE_ROOT_DIR}"
     )
 set ( COFFEE_LIBRARY_SUFFIXES
     lib
@@ -24,14 +22,12 @@ set ( COFFEE_LIBRARY_SUFFIXES
     lib/${ANDROID_ABI}
     )
 
-message("Paths: ${COFFEE_SEARCH_PATHS}")
-message("Suffixes: ${COFFEE_LIBRARY_SUFFIXES}")
-
 find_path ( COFFEE_INCLUDE_DIR_TMP
     coffee/core/coffee.h
     coffee/CCore
 
     PATHS
+    ${COFFEE_ROOT_DIR}
     ${COFFEE_SEARCH_PATHS}
 
     PATH_SUFFIXES

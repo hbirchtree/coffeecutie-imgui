@@ -9,6 +9,7 @@
 
 #include <imgui.h>
 #include <coffee/imgui/imgui_binding.h>
+#include <coffee/imgui/graphics_widgets.h>
 
 using namespace Coffee;
 
@@ -24,6 +25,7 @@ struct RData
     CString input;
     CImGui::Widgets::FrameCounter counter;
     CImGui::Widgets::EventHandlerList elist;
+    CImGui::Widgets::RendererViewer rviewer;
 
     bool open = false;
     bool marked = false;
@@ -55,6 +57,7 @@ void setup(R& r, RData* data)
 
     data->counter = CImGui::Widgets::GetFramerateStats(1.);
     data->elist = CImGui::Widgets::GetEventHandlerList();
+    data->rviewer = CImGui::Widgets::GetRendererViewer<GFX>();
 
     cDebug("Window manager: {0}", r.windowLibrary());
 }
@@ -69,6 +72,8 @@ void loop(R& r, RData* data)
     if(enable_gui_now)
     {
         CImGui::NewFrame(r, r);
+
+        data->rviewer(GFX::GraphicsContext(), GFX::GraphicsDevice());
 
         ImGui::Begin("Hello!", &data->open, 0);
 

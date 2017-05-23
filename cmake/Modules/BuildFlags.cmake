@@ -43,8 +43,8 @@ if(ANDROID AND CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions("-DANDROID_RELEASE_MODE")
 endif()
 
-# Enable testing with COFFEE_TESTS
-if(COFFEE_TESTS)
+# Enable unit testing with GENERATE_TESTS
+if(GENERATE_TESTS)
     enable_testing()
 endif()
 
@@ -59,4 +59,8 @@ if(ANDROID)
 #    endif()
 
     add_definitions ( "-DANDROID_API_LEVEL=${ANDROID_NATIVE_API_LEVEL}" )
+endif()
+
+if(COFFEE_BUILD_ANGLE)
+	add_definitions( "-DCOFFEE_GLES20_MODE" )
 endif()
