@@ -9,9 +9,20 @@ set ( COFFEE_PACKAGE_DIRECTORY "${PROJECT_BINARY_DIR}/${CMAKE_PACKAGED_OUTPUT_PR
 set ( COFFEE_DEPLOY_DIRECTORY "${PROJECT_BINARY_DIR}/deploy" )
 set ( COFFEE_SOURCE_TEMPLATE_DIRECTORY "${CMAKE_SOURCE_DIR}/internal/templates" )
 
+if(ANDROID)
+    set ( CMAKE_MODULE_PATH
+        ${CMAKE_SOURCE_DIR}/cmake/Find_Android
+        ${CMAKE_MODULE_PATH}
+        )
+elseif(WIN32)
+    set ( CMAKE_MODULE_PATH
+        ${CMAKE_SOURCE_DIR}/cmake/Find_Windows
+        ${CMAKE_MODULE_PATH}
+        )
+endif()
+
 set ( CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
-    ${CMAKE_SOURCE_DIR}/cmake/Find_Android
     ${CMAKE_SOURCE_DIR}/cmake/Find
     ${CMAKE_SOURCE_DIR}/cmake/Modules
     ${CMAKE_SOURCE_DIR}/cmake/Packaging
@@ -52,6 +63,10 @@ set ( LIBS
     ${SDL2_LIBRARY};${SDL2_LIBRARIES}
     )
 
+set ( PERMS
+    OPENGL;AUDIO;ENVIRONMENT_SENSORS;NETWORK_CONNECT;JOYSTICK
+    )
+
 include_directories (
     ${COFFEE_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include
@@ -72,5 +87,5 @@ coffee_add_application_longerer(
     "???" "???"
     "src/main.cpp" "CoffeeImGui"
     "" "" ""
-    "" ""
+    "${PERMS}" ""
     )

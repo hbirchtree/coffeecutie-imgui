@@ -9,6 +9,7 @@ namespace Coffee{
 namespace CImGui{
 
 namespace Widgets{
+
 using RendererViewer = Function<void(RHI::GraphicsAPI::GraphicsContext const&, RHI::GraphicsAPI::GraphicsDevice const&)>;
 
 template<typename GFX,
