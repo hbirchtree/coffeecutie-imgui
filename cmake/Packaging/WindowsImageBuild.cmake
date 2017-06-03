@@ -5,6 +5,15 @@ macro(WINPE_PACKAGE
         SOURCES RESOURCES
         ICON_ASSET )
 
+	set ( INCLUDED_LIBS "" )
+	# Locate necessary binary files
+	foreach(lib ${ANGLE_LIBRARIES};${SDL2_LIBRARY})
+		get_filename_component ( LIB_BASE "${lib}" NAME_WE )
+		get_filename_component ( LIB_DIR "${lib}" DIRECTORY )
+
+		set ( INCLUDED_LIBS "${INCLUDED_LIBS};${LIB_DIR}/${LIB_BASE}.dll" )
+	endforeach()
+
     set ( WINDOWS_DIST_COMPANY "${COMPANY}" )
 
     set ( WINDOWS_PACKAGE_NAME "${DOM_NAME}.${TARGET}" )
@@ -101,37 +110,93 @@ macro(WINPE_PACKAGE
 
     # Finally we stir the smelly gak into PE
 
-    add_executable(${TARGET} ${SOURCES}
+	if(WIN_UWP)
+        include_directories( ${SDL2_INCLUDE_DIR} )
+		include_directories( ${ANGLE_INCLUDE_DIR} )
+	endif()
+
+	
+	if(MSVC AND WIN_UWP)
+		set ( OPTIONS WIN32 )
+	endif()
+
+    add_executable(${TARGET}
+		${OPTIONS}
+		${SDL2_MAIN_C_FILE}
+		${SOURCES}
         ${WINDOWS_BASE_RESOURCE}
         ${RESOURCE_DESCRIPTOR}
         ${MANIFEST_FILE}
+		${INCLUDED_LIBS}
         )
+
+	if(WIN_UWP)
+		# I need these seeds for mye research, Morty, gotta stuff it waaay up there, Morty.
+		target_link_libraries ( ${TARGET} ${SDL2_LIBRARY} )
+		set_source_files_properties ( ${SDL2_MAIN_C_FILE}
+			PROPERTIES COMPILE_FLAGS /ZW
+			)
+		#set_target_properties ( ${TARGET}
+		#	PROPERTIES
+		#	RESOURCE "${SDL2_LIBRARY_BIN};${ANGLE_LIBRARIES_BIN}"
+		#	)
+		set ( APPX_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/AppX" )
+		execute_process ( COMMAND cmake -E make_directory ${APPX_DIR} )
+		set ( APPX_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/AppX" )
+		execute_process ( COMMAND cmake -E make_directory ${APPX_DIR} )
+
+		foreach(var ${INCLUDED_LIBS})
+			set ( APPX_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/AppX" )
+			configure_file(
+				"${var}"
+				${APPX_DIR}/
+				COPYONLY
+				)
+			set ( APPX_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/AppX" )
+			configure_file(
+				"${var}"
+				${APPX_DIR}/
+				COPYONLY
+				)
+		endforeach()
+	endif()
 
     set_target_properties ( ${TARGET}
         PROPERTIES
         VERSION ${COFFEE_BUILD_STRING}
         SOVERSION 1
         )
-    target_link_libraries ( ${TARGET}
-        user32
-        gdi32
-        winmm
-        imm32
-        ole32
-        oleaut32
-        version
-        uuid
-        dinput8
-        )
-    install(
-        TARGETS
-        ${TARGET}
+	if(NOT WIN_UWP)
+		target_link_libraries ( ${TARGET}
+			user32
+			gdi32
+			winmm
+			imm32
+			ole32
+			oleaut32
+			version
+			uuid
+			dinput8
+			)
+	endif()
+	if(NOT WIN_UWP)
+		install(
+			TARGETS
+			${TARGET}
 
-        DESTINATION
-        bin
-        )
-    install(
-        FILES ${BUNDLE_LIBS}
-        DESTINATION bin
-        )
+			DESTINATION
+			bin
+			)
+		install(
+			FILES ${BUNDLE_LIBS}
+			DESTINATION bin
+			)
+	else()
+		install (
+			DIRECTORY
+			${CMAKE_CURRENT_BINARY_DIR}/AppPackages/${TARGET}
+
+			DESTINATION "${CMAKE_PACKAGED_OUTPUT_PREFIX}/windows-universal"
+			)
+	endif()
 endmacro()

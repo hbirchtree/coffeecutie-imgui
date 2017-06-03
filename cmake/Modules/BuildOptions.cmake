@@ -58,17 +58,17 @@ option ( COFFEE_BUILD_STATIC "Build statically linked binaries" ON )
 # Whether to enable the GLES renderer, will replace desktop GL renderer
 option ( COFFEE_BUILD_GLES "Build with GLES 3.0 renderer instead of desktop GL" OFF)
 
-if(WIN32 OR WIN_UWP)
-	set ( ANGLE_OPT ON )
-	if(WIN32)
-		set ( ANGLE_OPT OFF )
+if(WIN32)
+	set ( ANGLE_OPT OFF )
+	if(WIN_UWP)
+		set ( ANGLE_OPT ON )
 	endif()
 
 	option ( COFFEE_BUILD_ANGLE "Build with OpenGL ES support provided by MS ANGLE" ${ANGLE_OPT} )
 endif()
 
 if( COFFEE_BUILD_ANGLE )
-	message ( "-- Building ANGLE as OpenGL ES provider" )
+	message (STATUS "Building ANGLE as OpenGL ES provider" )
 endif()
 
 if(NOT COFFEE_BUILD_GLES)
@@ -145,3 +145,24 @@ option ( COFFEE_BUILD_QT "Build with Qt support" OFF)
 #    set ( COFFEE_BUILD_PCL OFF )
 ##    set ( COFFEE_BUILD_GLEAM_RHI OFF ) # Not implemented for GLES, only GL3.3
 #endif()
+
+# Windows is missing an identifier for libraries
+# This applies to all derivative builds
+if(WIN32)
+    if(${CMAKE_CXX_COMPILER} MATCHES "/x86_amd64/")
+        set ( CMAKE_LIBRARY_ARCHITECTURE_ "amd64" )
+		set ( CMAKE_LIBRARY_ARCHITECTURE_UWP_ "x64" )
+		set ( CMAKE_LIBRARY_ARCHITECTURE_SDL_ "x64" )
+    elseif(${CMAKE_CXX_COMPILER} MATCHES "/x86_arm/")
+        set ( CMAKE_LIBRARY_ARCHITECTURE_ "arm" )
+		set ( CMAKE_LIBRARY_ARCHITECTURE_UWP_ "arm" )
+    else()
+        set ( CMAKE_LIBRARY_ARCHITECTURE_ "x86" )
+		set ( CMAKE_LIBRARY_ARCHITECTURE_UWP_ "Win32" )
+		set ( CMAKE_LIBRARY_ARCHITECTURE_SDL_ "x86" )
+    endif()
+
+    set ( CMAKE_LIBRARY_ARCHITECTURE "${CMAKE_LIBRARY_ARCHITECTURE_}" CACHE STRING "" )
+	set ( CMAKE_LIBRARY_ARCHITECTURE_UWP "${CMAKE_LIBRARY_ARCHITECTURE_UWP_}" CACHE STRING "" )
+	set ( CMAKE_LIBRARY_ARCHITECTURE_SDL "${CMAKE_LIBRARY_ARCHITECTURE_SDL_}" CACHE STRING "" )
+endif()
