@@ -5,6 +5,10 @@ macro(WINPE_PACKAGE
         SOURCES RESOURCES
         ICON_ASSET )
 
+	if(COFFEE_BUILD_ANGLE)
+		find_package ( ANGLE REQUIRED )
+	endif()
+
 	set ( INCLUDED_LIBS "" )
 	# Locate necessary binary files
 	foreach(lib ${ANGLE_LIBRARIES};${SDL2_LIBRARY})
@@ -159,6 +163,35 @@ macro(WINPE_PACKAGE
 				COPYONLY
 				)
 		endforeach()
+
+		execute_process ( COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir )
+
+		configure_file (
+			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
+			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/Logo.png
+			COPYONLY
+			)
+		configure_file (
+			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
+			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/SmallLogo.png
+			COPYONLY
+			)
+		configure_file (
+			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
+			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/SmallLogo44x44.png
+			COPYONLY
+			)
+		configure_file (
+			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
+			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/StoreLogo.png
+			COPYONLY
+			)
+			
+		configure_file (
+			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
+			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/SplashScreen.png
+			COPYONLY
+			)
 	endif()
 
     set_target_properties ( ${TARGET}
