@@ -186,9 +186,13 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
 
 bool Coffee::CImGui::CreateDeviceObjects()
 {
-    constexpr cstring vertex_shader =
+	constexpr cstring vertex_shader =
 #if defined(COFFEE_GLEAM_DESKTOP) && 0
-        "#version 330\n"
+		"#version 330\n"
+#elif defined(COFFEE_GLES20_MODE)
+		"#define in attribute\n"
+		"#define out varying\n"
+		"precision lowp float;\n"
 #else
         "#version 300 es\n"
         "precision lowp float;\n"
@@ -204,23 +208,32 @@ bool Coffee::CImGui::CreateDeviceObjects()
         "	Frag_UV = UV;\n"
         "	Frag_Color = Color;\n"
         "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-        "}\n";
+        "}\n"
+		;
 
-    constexpr cstring fragment_shader =
+	constexpr cstring fragment_shader =
 #if defined(COFFEE_GLEAM_DESKTOP) && 0
-        "#version 330\n"
+		"#version 330\n"
+#elif defined(COFFEE_GLES20_MODE)
+		"#define in varying\n"
+		"#define texture texture2D\n"
+		"#define Out_Color gl_FragColor\n"
+		"precision lowp float;\n"
 #else
-        "#version 300 es\n"
-        "precision lowp float;\n"
+		"#version 300 es\n"
+		"precision lowp float;\n"
 #endif
-        "uniform sampler2D Texture;\n"
-        "in vec2 Frag_UV;\n"
-        "in vec4 Frag_Color;\n"
-        "out vec4 Out_Color;\n"
-        "void main()\n"
-        "{\n"
-        "	Out_Color = Frag_Color * texture( Texture, Frag_UV.st);\n"
-        "}\n";
+		"uniform sampler2D Texture;\n"
+		"in vec2 Frag_UV;\n"
+		"in vec4 Frag_Color;\n"
+#if !defined(COFFEE_GLES20_MODE)
+		"out vec4 Out_Color;\n"
+#endif
+		"void main()\n"
+		"{\n"
+		"	Out_Color = Frag_Color * texture( Texture, Frag_UV.st);\n"
+		"}\n"
+		;
 
     if(im_data)
         return true;

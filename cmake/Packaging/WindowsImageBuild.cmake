@@ -5,6 +5,10 @@ macro(WINPE_PACKAGE
         SOURCES RESOURCES
         ICON_ASSET )
 
+	if(COFFEE_BUILD_ANGLE OR WIN_UWP)
+		find_package ( ANGLE REQUIRED )
+	endif()
+
 	set ( INCLUDED_LIBS "" )
 	# Locate necessary binary files
 	foreach(lib ${ANGLE_LIBRARIES};${SDL2_LIBRARY})
@@ -132,7 +136,7 @@ macro(WINPE_PACKAGE
 
 	if(WIN_UWP)
 		# I need these seeds for mye research, Morty, gotta stuff it waaay up there, Morty.
-		target_link_libraries ( ${TARGET} ${SDL2_LIBRARY} )
+		target_link_libraries ( ${TARGET} ${SDL2_LIBRARY};${ANGLE_LIBRARIES} )
 		set_source_files_properties ( ${SDL2_MAIN_C_FILE}
 			PROPERTIES COMPILE_FLAGS /ZW
 			)
