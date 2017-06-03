@@ -1,6 +1,7 @@
 # ASIO doesn't work
 set ( COFFEE_BUILD_OPENSSL OFF CACHE BOOL "" )
 
+set ( COFFEE_BUILD_ANGLE ON CACHE BOOL "" ) # This is for standalone builds, so that they don't fuck up
 set ( COFFEE_BUILD_GLES ON CACHE BOOL "" )
 set ( COFFEE_BUILD_OPENAL OFF CACHE BOOL "" )
 

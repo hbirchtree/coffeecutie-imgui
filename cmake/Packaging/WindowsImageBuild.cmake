@@ -136,7 +136,7 @@ macro(WINPE_PACKAGE
 
 	if(WIN_UWP)
 		# I need these seeds for mye research, Morty, gotta stuff it waaay up there, Morty.
-		target_link_libraries ( ${TARGET} ${SDL2_LIBRARY} )
+		target_link_libraries ( ${TARGET} ${SDL2_LIBRARY};${ANGLE_LIBRARIES} )
 		set_source_files_properties ( ${SDL2_MAIN_C_FILE}
 			PROPERTIES COMPILE_FLAGS /ZW
 			)

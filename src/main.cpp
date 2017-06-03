@@ -59,7 +59,7 @@ void setup(R& r, RData* data)
     data->elist = CImGui::Widgets::GetEventHandlerList();
     data->rviewer = CImGui::Widgets::GetRendererViewer<GFX>();
 
-    cDebug("Window manager: {0}", r.windowLibrary());
+    //cDebug("Window manager: {0}", r.windowLibrary());
 }
 
 void loop(R& r, RData* data)

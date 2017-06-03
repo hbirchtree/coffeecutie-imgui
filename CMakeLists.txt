@@ -74,7 +74,11 @@ include_directories (
     ${SDL2_INCLUDE_DIR}
     )
 
-add_definitions(-DCOFFEE_IMGUI_USE_GLEAM)
+add_definitions(
+	-DCOFFEE_IMGUI_USE_GLEAM
+	-DIMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCS
+	-DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCS
+	)
 
 coffee_add_library ( CoffeeImGui
     "${SRCS}" "${LIBS}"
