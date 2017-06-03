@@ -145,9 +145,9 @@ macro(WINPE_PACKAGE
 		#	RESOURCE "${SDL2_LIBRARY_BIN};${ANGLE_LIBRARIES_BIN}"
 		#	)
 		set ( APPX_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/AppX" )
-		execute_process ( COMMAND cmake -E make_directory ${APPX_DIR} )
+		execute_process ( COMMAND ${CMAKE_COMMAND} -E make_directory ${APPX_DIR} )
 		set ( APPX_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/AppX" )
-		execute_process ( COMMAND cmake -E make_directory ${APPX_DIR} )
+		execute_process ( COMMAND ${CMAKE_COMMAND} -E make_directory ${APPX_DIR} )
 
 		foreach(var ${INCLUDED_LIBS})
 			set ( APPX_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/AppX" )
@@ -164,33 +164,40 @@ macro(WINPE_PACKAGE
 				)
 		endforeach()
 
-		execute_process ( COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir )
+		execute_process ( COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir )
 
-		configure_file (
+		message ( STATUS "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir" )
+		
+		add_custom_command ( TARGET ${TARGET}
+			PRE_LINK
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different 
 			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
 			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/Logo.png
-			COPYONLY
 			)
-		configure_file (
+		add_custom_command ( TARGET ${TARGET}
+			PRE_LINK
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different 
 			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
 			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/SmallLogo.png
-			COPYONLY
 			)
-		configure_file (
+		add_custom_command ( TARGET ${TARGET}
+			PRE_LINK
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different 
 			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
 			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/SmallLogo44x44.png
-			COPYONLY
 			)
-		configure_file (
+		add_custom_command ( TARGET ${TARGET}
+			PRE_LINK
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different 
 			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
 			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/StoreLogo.png
-			COPYONLY
 			)
 			
-		configure_file (
-			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png
+		add_custom_command ( TARGET ${TARGET}
+			PRE_LINK
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different 
+			${COFFEE_DESKTOP_DIRECTORY}/common/icon_large.png 
 			${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.dir/SplashScreen.png
-			COPYONLY
 			)
 	endif()
 
