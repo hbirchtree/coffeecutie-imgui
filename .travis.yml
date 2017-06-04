@@ -1,0 +1,32 @@
+language: cpp
+dist: trusty
+services:
+ - docker
+
+os:
+ - linux
+ - osx
+compiles:
+ - clang
+
+before_script:
+ - ci/travis-deps.sh
+
+script:
+ - ci/travis-build.sh
+
+notifications:
+  email: true
+
+branches:
+  only:
+   - master
+   - /^testing.*$/
+
+deploy:
+  provider: releases
+  api_key: "${GITHUB_TOKEN}"
+  file: "binaries_*.tar.gz"
+  skip_cleanup: true
+  on:
+    tags: true
