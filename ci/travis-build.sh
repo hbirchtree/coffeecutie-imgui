@@ -12,7 +12,7 @@ cd "$BUILD_DIR"
 
 function build_standalone()
 {
-    make -f "$CI_DIR/Makefile.choices" \
+    make -f "$CI_DIR/Makefile.standalone" \
         -e SOURCE_DIR="$SOURCE_DIR" \
         -e COFFEE_DIR="$COFFEE_DIR" $@ \
         -e EXTRA_OPTIONS=""
