@@ -22,7 +22,7 @@ case "${TRAVIS_OS_NAME}" in
 "linux")
     build_standalone ubuntu.amd64
 
-    tar -zcvf "build_Universal.tar.gz" "${BUILD_DIR}/build"
+    tar -zcvf "binaries_All.tar.gz" ${BUILD_DIR}/build
 ;;
 "osx")
 
