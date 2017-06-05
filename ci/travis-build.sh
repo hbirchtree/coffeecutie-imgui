@@ -34,9 +34,9 @@ function download_libraries()
     notify "Downloading libraries for architecture: ${BUILDVARIANT}"
     local LATEST_RELEASE="$(github_api list release $COFFEE_SLUG | head -1 | cut -d'|' -f 3)"
     local CURRENT_ASSET="$(github_api list asset ${COFFEE_SLUG}:${LATEST_RELEASE} | grep $BUILDVARIANT)"
-    if [[ -z $CURRENT_ASSET ]]; then
-        die "Failed to find library release"
-    fi
+
+    [[ -z $CURRENT_ASSET ]] && die "Failed to find library release"
+
     notify "Found assets: $CURRENT_ASSET (from $LATEST_RELEASE)"
     local ASSET_ID="$(echo $CURRENT_ASSET | cut -d'|' -f 3)"
     local ASSET_FN="$(echo $CURRENT_ASSET | cut -d'|' -f 5)"
@@ -48,9 +48,7 @@ function download_libraries()
 
 function get_opts()
 {
-    if [[ ! -z $COFFEE_LIBRARY_BUILD ]]; then
-        echo "-DGENERATE_PROGRAMS=OFF"
-    fi
+    [[ ! -z $COFFEE_LIBRARY_BUILD ]] && echo "-DGENERATE_PROGRAMS=OFF"
 }
 
 function build_standalone()
@@ -65,9 +63,7 @@ function build_standalone()
     # We want to exit if the Make process fails horribly
     # Should also signify to Travis/CI that something went wrong
     EXIT_STAT=$?
-    if [[ ! "$EXIT_STAT" = 0 ]]; then
-        die "Make process failed"
-    fi
+    [[ ! "$EXIT_STAT" = 0 ]] && die "Make process failed"
 }
 
 case "${TRAVIS_OS_NAME}" in
