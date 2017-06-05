@@ -20,9 +20,7 @@ function build_standalone()
 
 case "${TRAVIS_OS_NAME}" in
 "linux")
-    build_standalone ubuntu.amd64
-    build_standalone android.armv8a
-    build_standalone android.armv7a
+    build_standalone "$BUILDVARIANT"
 
     tar -zcvf "binaries_All.tar.gz" ${BUILD_DIR}/build
 ;;

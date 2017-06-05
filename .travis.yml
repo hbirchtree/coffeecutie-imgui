@@ -9,6 +9,23 @@ os:
 compiles:
  - clang
 
+env:
+  matrix:
+   - BUILDVARIANT=ubuntu.amd64
+   - BUILDVARIANT=android.armv7a
+   - BUILDVARIANT=android.armv8a
+
+matrix:
+  include:
+  - os: osx
+    env: BUILDVARIANT=ubuntu.amd64
+  - os: linux
+    env: BUILDVARIANT=ubuntu.amd64
+  - os: linux
+    env: BUILDVARIANT=android.armv7a
+  - os: linux
+    env: BUILDVARIANT=android.armv8a
+
 before_script:
  - ci/travis-deps.sh
 
