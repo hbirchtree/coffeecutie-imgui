@@ -16,14 +16,10 @@ env:
    - BUILDVARIANT=android.armv8a
 
 matrix:
-  include:
+  exclude:
   - os: osx
-    env: BUILDVARIANT=ubuntu.amd64
-  - os: linux
-    env: BUILDVARIANT=ubuntu.amd64
-  - os: linux
     env: BUILDVARIANT=android.armv7a
-  - os: linux
+  - os: osx
     env: BUILDVARIANT=android.armv8a
 
 before_script:
