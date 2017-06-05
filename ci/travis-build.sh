@@ -10,6 +10,36 @@ COFFEE_DIR="$BUILD_DIR/coffee_lib"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
+QTHUB_DOCKER="hbirch/coffeecutie:qthub-client"
+COFFEE_SLUG="hbirchtree/coffeecutie"
+
+function die()
+{
+    echo " * " $@
+    exit 1
+}
+
+function notify()
+{
+    echo " * " $@
+}
+
+function github_api()
+{
+    docker run --rm $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
+}
+
+function download_libraries()
+{
+    notify "Downloading libraries for architecture: ${BUILDVARIANT}"
+    local LATEST_RELEASE=$(github_api list release $COFFEE_SLUG | head -1 | cut -d'|' -f 3)
+    local CURRENT_ASSET=$(github_api list asset ${COFFEE_SLUG}:${LATEST_RELEASE} | grep $BUILDVARIANT)
+    if [[ -z $CURRENT_ASSET ]]; then
+        die "Failed to find library release"
+    fi
+    notify "Found assets: $CURRENT_ASSET (from $LATEST_RELEASE)"
+}
+
 function build_standalone()
 {
     make -f "$CI_DIR/Makefile.standalone" \
@@ -21,7 +51,7 @@ function build_standalone()
     # Should also signify to Travis/CI that something went wrong
     EXIT_STAT=$?
     if [[ ! "$EXIT_STAT" = 0 ]]; then
-        exit 1
+        die "Make process failed"
     fi
 }
 
