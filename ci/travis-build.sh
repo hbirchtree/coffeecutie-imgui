@@ -35,7 +35,7 @@ function download_libraries()
     local LATEST_RELEASE="$(github_api list release $COFFEE_SLUG | head -1 | cut -d'|' -f 3)"
     local CURRENT_ASSET="$(github_api list asset ${COFFEE_SLUG}:${LATEST_RELEASE} | grep $BUILDVARIANT)"
 
-    [[ -z $CURRENT_ASSET ]] && die "Failed to find library release"
+    [[ -z $CURRENT_ASSET ]] && die "Failed to find library release for $BUILDVARIANT"
 
     notify "Found assets: $CURRENT_ASSET (from $LATEST_RELEASE)"
     local ASSET_ID="$(echo $CURRENT_ASSET | cut -d'|' -f 3)"
@@ -44,6 +44,7 @@ function download_libraries()
     github_api pull asset $COFFEE_SLUG $ASSET_ID
 
     tar -xvf "$ASSET_FN"
+    mv build $COFFEE_DIR
 }
 
 function get_opts()
@@ -70,7 +71,7 @@ case "${TRAVIS_OS_NAME}" in
 "linux")
     build_standalone "$BUILDVARIANT"
 
-    tar -zcvf "libraries_$BUILDVARIANT.tar.gz" ${BUILD_DIR}/build
+    tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
 ;;
 "osx")
 

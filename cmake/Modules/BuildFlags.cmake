@@ -63,7 +63,6 @@ if(ANDROID)
 endif()
 
 if(COFFEE_BUILD_ANGLE)
-	message ( STATUS "Building with GLES 2.0 functionality" )
 	add_definitions( "-DCOFFEE_GLES20_MODE" )
 endif()
 
