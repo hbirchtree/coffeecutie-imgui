@@ -45,13 +45,6 @@ function download_libraries()
 
     tar -xvf "$ASSET_FN"
     mv build $COFFEE_DIR
-
-    ls -lR
-}
-
-function get_opts()
-{
-    [[ ! -z $COFFEE_LIBRARY_BUILD ]] && echo "-DGENERATE_PROGRAMS=OFF"
 }
 
 function build_standalone()
