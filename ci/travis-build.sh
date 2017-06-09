@@ -26,7 +26,7 @@ function notify()
 
 function github_api()
 {
-    docker run --rm $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
+    docker run --rm -v $PWD:/data $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
 }
 
 function download_libraries()
@@ -42,8 +42,6 @@ function download_libraries()
     local ASSET_FN="$(echo $CURRENT_ASSET | cut -d'|' -f 5)"
 
     github_api pull asset $COFFEE_SLUG $ASSET_ID
-
-    ls && pwd
 
     tar -xvf "$ASSET_FN"
     mv build $COFFEE_DIR
