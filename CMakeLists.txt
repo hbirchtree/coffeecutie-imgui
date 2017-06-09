@@ -35,6 +35,7 @@ else()
 endif()
 
 include ( BuildFlags )
+include ( BuildOptions )
 include ( BuildFunctions )
 include ( PackagingOptions )
 include ( TestingOptions )

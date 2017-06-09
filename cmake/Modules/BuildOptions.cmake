@@ -73,7 +73,7 @@ if( COFFEE_BUILD_ANGLE )
 endif()
 
 if(COFFEE_BUILD_GLES_20)
-    add_definitions(-DOFFEE_GLES20_MODE)
+    add_definitions(-DCOFFEE_GLES20_MODE)
 endif()
 if(NOT COFFEE_BUILD_GLES)
     add_definitions("-DCOFFEE_GLEAM_DESKTOP")
