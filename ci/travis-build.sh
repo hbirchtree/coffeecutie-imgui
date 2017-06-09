@@ -60,8 +60,7 @@ function build_standalone()
 
     make -f "$CI_DIR/Makefile.standalone" \
         -e SOURCE_DIR="$SOURCE_DIR" \
-        -e COFFEE_DIR="$COFFEE_DIR" $@ \
-        -e EXTRA_OPTIONS="$(get_opts)"
+        -e COFFEE_DIR="$COFFEE_DIR" $@
 
     # We want to exit if the Make process fails horribly
     # Should also signify to Travis/CI that something went wrong
