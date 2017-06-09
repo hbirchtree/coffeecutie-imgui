@@ -45,6 +45,8 @@ function download_libraries()
 
     tar -xvf "$ASSET_FN"
     mv build $COFFEE_DIR
+
+    ls -lR
 }
 
 function get_opts()
