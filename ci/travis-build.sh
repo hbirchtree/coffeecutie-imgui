@@ -43,6 +43,8 @@ function download_libraries()
 
     github_api pull asset $COFFEE_SLUG $ASSET_ID
 
+    ls && pwd
+
     tar -xvf "$ASSET_FN"
     mv build $COFFEE_DIR
 }
