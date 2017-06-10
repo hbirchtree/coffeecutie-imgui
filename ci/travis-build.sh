@@ -51,6 +51,8 @@ function build_standalone()
 {
     download_libraries $COFFEE_SLUG
 
+    [[ "$BUILDVARIANT" = "android.armv7a" ]] && ls -lR $SOURCE_DIR
+
     make -f "$CI_DIR/Makefile.standalone" \
         -e SOURCE_DIR="$SOURCE_DIR" \
         -e COFFEE_DIR="$COFFEE_DIR" $@
