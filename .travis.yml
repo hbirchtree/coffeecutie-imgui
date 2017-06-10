@@ -18,9 +18,9 @@ env:
    - BUILDVARIANT=maemo.armv7a
    - BUILDVARIANT=raspberry.armhf
    - BUILDVARIANT=steam.amd64
-   - BUILDVARIANT=emscripten.asmjs
-   - BUILDVARIANT=emscripten.wasm
    - BUILDVARIANT=ubuntu.i686
+   #- BUILDVARIANT=emscripten.asmjs
+   #- BUILDVARIANT=emscripten.wasm
 
 matrix:
   exclude:
