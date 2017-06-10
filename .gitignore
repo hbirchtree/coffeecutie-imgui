@@ -1,4 +1,5 @@
 *~
 reconfig.sh
 *.user
-build*
+build
+build_*
