@@ -6,8 +6,8 @@ case "${TRAVIS_OS_NAME}" in
     docker run --rm --privileged multiarch/qemu-user-static:register
 ;;
 "osx")
-    # Qt5 package is for github-cli
-    brew install sdl2 cmake ninja openssl qt5 swig@3.04
+    brew install sdl2 cmake ninja openssl swig@3.04 ruby@2.3
+    gem install github_api
     exit 0
 ;;
 esac
