@@ -26,7 +26,19 @@ function notify()
 
 function github_api()
 {
-    docker run --rm -v $PWD:/data $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
+    case "${TRAVIS_OS_NAME}" in
+    "linux")
+        docker run --rm -v $PWD:/data $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
+    ;;
+    "osx")
+        if [[ ! -f "github-cli" ]]; then
+            wget "https://github.com/hbirchtree/qthub/releases/download/v1.0.1.1/github-cli-osx" \
+                    -O github-cli
+            chmod +x github-cli
+        fi
+        ./github-cli --api-token "$GITHUB_TOKEN" $@
+    ;;
+    esac
 }
 
 function download_libraries()
@@ -47,6 +59,11 @@ function download_libraries()
     mv build $COFFEE_DIR
 }
 
+function download_libraries_mac()
+{
+
+}
+
 function build_standalone()
 {
     download_libraries $COFFEE_SLUG
@@ -61,6 +78,18 @@ function build_standalone()
     [[ ! "$EXIT_STAT" = 0 ]] && die "Make process failed"
 }
 
+function build_mac()
+{
+    download_libraries_mac $COFFEE_SLUG
+
+    make -f "$CI_DIR/Makefile.mac" \
+        -e SOURCE_DIR="$SOURCE_DIR" \
+        -e COFFEE_DIR="$COFFEE_DIR" $@
+
+    EXIT_STAT=$?
+    [[ ! "$EXIT_STAT" = 0 ]] && die "Make process failed"
+}
+
 case "${TRAVIS_OS_NAME}" in
 "linux")
     build_standalone "$BUILDVARIANT"
@@ -68,6 +97,8 @@ case "${TRAVIS_OS_NAME}" in
     tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
 ;;
 "osx")
+    build_mac "$BUILDVARIANT"
 
+    tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
 ;;
 esac
