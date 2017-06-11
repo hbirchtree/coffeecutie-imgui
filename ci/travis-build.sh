@@ -36,7 +36,7 @@ function github_api()
                     -O github-cli
             chmod +x github-cli
         fi
-        ./github-cli --api-token "$GITHUB_TOKEN" $@
+        ./github-cli $@
     ;;
     esac
 }
