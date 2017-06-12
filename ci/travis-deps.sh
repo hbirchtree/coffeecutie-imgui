@@ -6,8 +6,7 @@ case "${TRAVIS_OS_NAME}" in
     docker run --rm --privileged multiarch/qemu-user-static:register
 ;;
 "osx")
-    brew install sdl2 cmake ninja openssl swig@3.04 ruby@2.3
-    gem install github_api
+    brew install sdl2 cmake ninja openssl swig@3.04 jq
     exit 0
 ;;
 esac

@@ -24,19 +24,95 @@ function notify()
     echo " * " $@
 }
 
+function requires()
+{
+    for prog in $@; do
+        local mute=$(which $prog)
+        if [[ ! "$?" = "0" ]]; then
+            die "Could not find program: $prog"
+        fi
+    done
+}
+
+#
+# 1: Github repo slug
+# 2: Sub-path
+#
+function github_curl()
+{
+    curl \
+        -X GET \
+        -H "Accept: application/vnd.github.v3+json" \
+        -H "Authorization: token $GITHUB_TOKEN" \
+        https://api.github.com/repos/$1/$2
+}
+
+function github_filter_latest()
+{
+    local tags=$(jq -r '.[].tag_name')
+    local string=""
+    for tag in $tags; do
+        echo "||$tag"
+    done
+}
+
+function github_filter_asset()
+{
+    local IFS=$'\n'
+    for rel in $(jq -c '.[]'); do
+        local rel_name=$(echo "$rel" | jq -r '.tag_name')
+        if [[ ! -z "$(echo $rel_name | grep $1)" ]]; then
+            local vars=$(echo "$rel" \
+                | jq -c '.assets[] | {name: .name, url: .browser_download_url, id: .id}')
+
+            for asset in $vars; do
+                local ID=$(echo "$asset" | jq -r '.id')
+                local NAME=$(echo "$asset" | jq -r '.name')
+                local URL=$(echo "$asset" | jq -r '.url')
+                echo "|$1|$ID||$NAME||$URL"
+            done
+        fi
+    done
+}
+
+function github_curl_frontend()
+{
+    # It's a read-only application, so we only need these
+    case "$1" in
+    "list")
+        case "$2" in
+        "release")
+            github_curl "$3" "releases" | github_filter_latest
+        ;;
+        "asset")
+            local slug=$(echo $3 | cut -d':' -f 1)
+            local release=$(echo $3 | cut -d':' -f 2)
+            github_curl "$slug" "releases" | github_filter_asset "$release"
+        ;;
+        esac
+    ;;
+    "pull")
+        case "$2" in
+        "asset")
+            local data=$(github_curl "$3" "release" | github_filter_asset)
+            local filename=$(echo $data | cut -d'|' -f 5)
+            local url=$(echo $data | cut -d'|' -f 7)
+
+            wget "$url" -O "$filename"
+        ;;
+        esac
+    ;;
+    esac
+}
+
 function github_api()
 {
     case "${TRAVIS_OS_NAME}" in
     "linux")
         docker run --rm -v $PWD:/data $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
     ;;
-    "osx")
-        local GH_APP="github-cli.app/Contents/MacOS/github-cli"
-        if [[ ! -f "${GH_APP}" ]]; then
-            wget "https://github.com/hbirchtree/qthub/releases/download/v1.0.1.1/github-cli-osx.app.tar.gz"
-            tar -zxvf github-cli-osx.app.tar.gz
-        fi
-        ./${GH_APP} --api-token "$GITHUB_TOKEN" $@
+    *)
+        github_curl_frontend $@
     ;;
     esac
 }
@@ -85,15 +161,22 @@ function build_mac()
     [[ ! "$EXIT_STAT" = 0 ]] && die "Make process failed"
 }
 
-case "${TRAVIS_OS_NAME}" in
-"linux")
-    build_standalone "$BUILDVARIANT"
+function main()
+{
+    case "${TRAVIS_OS_NAME}" in
+    "linux")
+        requires make docker tar
+        build_standalone "$BUILDVARIANT"
 
-    tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
-;;
-"osx")
-    build_mac "$BUILDVARIANT"
+        tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
+    ;;
+    "osx")
+        requires make wget curl jq tar
+        build_mac "$BUILDVARIANT"
 
-    tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
-;;
-esac
+        tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
+    ;;
+    esac
+}
+
+main
