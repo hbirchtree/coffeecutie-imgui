@@ -49,7 +49,7 @@ function github_curl()
 
 function github_filter_latest()
 {
-    local tags=$(jq -r '.[].tag_name')
+    local tags=$(jq -r '.[]?.tag_name')
     local string=""
     for tag in $tags; do
         echo "||$tag"
@@ -59,7 +59,7 @@ function github_filter_latest()
 function github_filter_asset()
 {
     local IFS=$'\n'
-    for rel in $(jq -c '.[]'); do
+    for rel in $(jq -c '.[]?'); do
         local rel_name=$(echo "$rel" | jq -r '.tag_name')
         if [[ ! -z "$(echo $rel_name | grep $1)" ]]; then
             local vars=$(echo "$rel" \
