@@ -43,7 +43,7 @@ function github_curl()
     curl \
         -X GET \
         -H "Accept: application/vnd.github.v3+json" \
-        -H "Authorization: token $GITHUB_TOKEN" \
+        -H "Authorization: token $GITHUB_TOKEN_READ" \
         https://api.github.com/repos/$1/$2
 }
 
