@@ -43,7 +43,7 @@ function github_curl()
     curl \
         -X GET \
         -H "Accept: application/vnd.github.v3+json" \
-        -H "Authorization: token $GITHUB_TOKEN_READ" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         https://api.github.com/repos/$1/$2
 }
 
@@ -75,6 +75,8 @@ function github_filter_asset()
     done
 }
 
+__github_asset_url=""
+
 function github_curl_frontend()
 {
     # It's a read-only application, so we only need these
@@ -94,11 +96,12 @@ function github_curl_frontend()
     "pull")
         case "$2" in
         "asset")
-            local data=$(github_curl "$3" "release" | github_filter_asset)
-            local filename=$(echo $data | cut -d'|' -f 5)
-            local url=$(echo $data | cut -d'|' -f 7)
+#            local data=$(github_curl "$3" "release" | github_filter_asset)
+#            local filename=$(echo $data | cut -d'|' -f 5)
+#            local url=$(echo $data | cut -d'|' -f 7)
 
-            wget "$url" -O "$filename"
+#            wget "$url" -O "$filename"
+            wget "$__github_asset_url"
         ;;
         esac
     ;;
@@ -128,6 +131,7 @@ function download_libraries()
     notify "Found assets: $CURRENT_ASSET (from $LATEST_RELEASE)"
     local ASSET_ID="$(echo $CURRENT_ASSET | cut -d'|' -f 3)"
     local ASSET_FN="$(echo $CURRENT_ASSET | cut -d'|' -f 5)"
+    __github_asset_url=$(echo $CURRENT_ASSET | cut -d'|' -f 7)
 
     github_api pull asset $1 $ASSET_ID
 
