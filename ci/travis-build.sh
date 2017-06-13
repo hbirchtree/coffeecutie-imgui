@@ -75,8 +75,6 @@ function github_filter_asset()
     done
 }
 
-__github_asset_url=""
-
 function github_curl_frontend()
 {
     # It's a read-only application, so we only need these
@@ -96,12 +94,11 @@ function github_curl_frontend()
     "pull")
         case "$2" in
         "asset")
-#            local data=$(github_curl "$3" "release" | github_filter_asset)
-#            local filename=$(echo $data | cut -d'|' -f 5)
-#            local url=$(echo $data | cut -d'|' -f 7)
+            local data=$(github_curl "$3" "release" | github_filter_asset)
+            local filename=$(echo $data | cut -d'|' -f 5)
+            local url=$(echo $data | cut -d'|' -f 7)
 
-#            wget "$url" -O "$filename"
-            wget "$__github_asset_url"
+            wget "$url" -O "$filename"
         ;;
         esac
     ;;
