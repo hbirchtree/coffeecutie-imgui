@@ -131,7 +131,6 @@ function download_libraries()
     notify "Found assets: $CURRENT_ASSET (from $LATEST_RELEASE)"
     local ASSET_ID="$(echo $CURRENT_ASSET | cut -d'|' -f 3)"
     local ASSET_FN="$(echo $CURRENT_ASSET | cut -d'|' -f 5)"
-    __github_asset_url=$(echo $CURRENT_ASSET | cut -d'|' -f 7)
 
     github_api pull asset $1 $ASSET_ID
 
