@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 SOURCE_DIR="$PWD"
 BUILD_DIR="$SOURCE_DIR/multi_build"
 
@@ -12,6 +14,7 @@ cd "$BUILD_DIR"
 
 QTHUB_DOCKER="hbirch/coffeecutie:qthub-client"
 COFFEE_SLUG="hbirchtree/coffeecutie"
+MAKEFILE="Makefile.standalone"
 
 function die()
 {
@@ -22,6 +25,11 @@ function die()
 function notify()
 {
     echo " * " $@
+}
+
+function debug()
+{
+    echo $@ > /dev/stderr
 }
 
 function requires()
@@ -40,16 +48,28 @@ function requires()
 #
 function github_curl()
 {
-    curl \
+    local output="$(curl \
+        -s \
+        -i \
+        -o - \
         -X GET \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Authorization: token $GITHUB_TOKEN" \
-        https://api.github.com/repos/$1/$2
+        https://api.github.com/repos/$1/$2)"
+
+    debug $output
+
+    local code=$(cat download-info.txt | grep HTTP | awk '{print $2}')
+
+    #debug $output
+    echo $(echo "$output" | grep body)
 }
 
 function github_filter_latest()
 {
-    local tags=$(jq -r '.[]?.tag_name')
+    local input=$(cat)
+    #debug $input
+    local tags=$(echo $input | jq -r '.[]?.tag_name')
     local string=""
     for tag in $tags; do
         echo "||$tag"
@@ -58,10 +78,11 @@ function github_filter_latest()
 
 function github_filter_asset()
 {
+    local input=$(cat)
     local IFS=$'\n'
     for rel in $(jq -c '.[]?'); do
         local rel_name=$(echo "$rel" | jq -r '.tag_name')
-        if [[ ! -z "$(echo $rel_name | grep $1)" ]]; then
+        if [[ "$?" = 0 ]] && [[ ! -z $(echo $rel_name | grep "$1") ]]; then
             local vars=$(echo "$rel" \
                 | jq -c '.assets[] | {name: .name, url: .browser_download_url, id: .id}')
 
@@ -152,6 +173,8 @@ function build_standalone()
 function build_mac()
 {
     download_libraries $COFFEE_SLUG
+
+    die
 
     make -f "$CI_DIR/Makefile.mac" \
         -e SOURCE_DIR="$SOURCE_DIR" \
