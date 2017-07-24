@@ -1,5 +1,7 @@
 *~
-reconfig.sh
+#reconfig.sh
 *.user
 build
 build_*
+
+local.yml

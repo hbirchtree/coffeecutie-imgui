@@ -3,7 +3,7 @@
 SOURCE_DIR="$PWD"
 BUILD_DIR="$SOURCE_DIR/multi_build"
 
-CI_DIR="$SOURCE_DIR/ci"
+CI_DIR="$SOURCE_DIR/$MAKEFILE_DIR"
 
 COFFEE_DIR="$BUILD_DIR/coffee_lib"
 
@@ -11,7 +11,6 @@ mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
 QTHUB_DOCKER="hbirch/coffeecutie:qthub-client"
-COFFEE_SLUG="hbirchtree/coffeecutie"
 MAKEFILE="Makefile.standalone"
 
 function die()
@@ -142,7 +141,7 @@ function download_libraries()
     local LATEST_RELEASE="$(github_api list release ${1} | head -1 | cut -d'|' -f 3)"
     local CURRENT_ASSET="$(github_api list asset ${1}:${LATEST_RELEASE} | grep $BUILDVARIANT)"
 
-    [[ -z $CURRENT_ASSET ]] && die "Failed to find library release for $BUILDVARIANT"
+    [[ -z $CURRENT_ASSET ]] && die "Failed to find ${1} for $BUILDVARIANT"
 
     notify "Found assets: $CURRENT_ASSET (from $LATEST_RELEASE)"
     local ASSET_ID="$(echo $CURRENT_ASSET | cut -d'|' -f 3)"
@@ -156,28 +155,16 @@ function download_libraries()
 
 function build_standalone()
 {
-    download_libraries $COFFEE_SLUG
+    for i in $DEPENDENCIES; do
+        download_libraries ${COFFEE_SLUG[$i]}
+    done
 
-    make -f "$CI_DIR/Makefile.standalone" \
+    make -f "$CI_DIR/$MAKEFILE" \
         -e SOURCE_DIR="$SOURCE_DIR" \
         -e COFFEE_DIR="$COFFEE_DIR" $@
 
     # We want to exit if the Make process fails horribly
     # Should also signify to Travis/CI that something went wrong
-    EXIT_STAT=$?
-    [[ ! "$EXIT_STAT" = 0 ]] && die "Make process failed"
-}
-
-function build_mac()
-{
-    download_libraries $COFFEE_SLUG
-
-    die
-
-    make -f "$CI_DIR/Makefile.mac" \
-        -e SOURCE_DIR="$SOURCE_DIR" \
-        -e COFFEE_DIR="$COFFEE_DIR" $@
-
     EXIT_STAT=$?
     [[ ! "$EXIT_STAT" = 0 ]] && die "Make process failed"
 }
@@ -193,7 +180,8 @@ function main()
     ;;
     "osx")
         requires make wget curl jq tar
-        build_mac "$BUILDVARIANT"
+        MAKEFILE="Makefile.mac"
+        build_standalone "$BUILDVARIANT"
 
         tar -zcvf "$TRAVIS_BUILD_DIR/libraries_$BUILDVARIANT.tar.gz" -C ${BUILD_DIR} build/
     ;;

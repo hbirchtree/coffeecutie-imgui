@@ -1,0 +1,40 @@
+branches:
+- build: true
+  deploy: true
+  name: master
+- build: true
+  name: testing
+dependencies:
+- github:hbirchtree/coffeecutie:unstable
+display_name: Coffee Imgui
+engine_version: untagged-5b9b9a6300124f60de07-45-g82c08df
+makefile_location: ci
+name: coffeeimgui
+platforms:
+  android:
+  - armv7a
+  - armv8a
+  - armv7a.kitkat
+  emscripten:
+  - asmjs
+  - wasm
+  fedora:
+  - amd64
+  maemo:
+  - armv7a
+  osx:
+  - osx
+  - ios
+  raspberry:
+  - armhf
+  steam:
+  - amd64
+  ubuntu:
+  - amd64
+  - i686
+  - armhf
+  windows:
+  - win32
+  - uwp
+script_location: ci
+template_location: cmake/Templates
