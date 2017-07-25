@@ -156,7 +156,7 @@ function download_libraries()
 function build_standalone()
 {
     for i in $DEPENDENCIES; do
-        download_libraries ${COFFEE_SLUG[$i]}
+        download_libraries "${COFFEE_SLUG[$i]}"
     done
 
     make -f "$CI_DIR/$MAKEFILE" \

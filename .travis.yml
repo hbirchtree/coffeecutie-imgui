@@ -17,7 +17,7 @@ dist: trusty
 env:
   global:
   - MAKEFILE_DIR=ci
-  - DEPENDENCIES=github:hbirchtree/coffeecutie:unstable;
+  - DEPENDENCIES=hbirchtree/coffeecutie;
   matrix:
   - BUILDVARIANT=android.armv7a
   - BUILDVARIANT=android.armv7a.kitkat
