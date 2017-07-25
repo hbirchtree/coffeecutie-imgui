@@ -1,5 +1,5 @@
 before_script:
-- ci/install-dependencies.sh
+- ci/travis-deps.sh
 branches:
   only:
   - master
@@ -62,7 +62,7 @@ os:
 - linux
 - osx
 script:
-- ci/build.sh
+- ci/travis-build.sh
 services:
 - docker
 sudo: required
