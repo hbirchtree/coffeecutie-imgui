@@ -31,6 +31,7 @@ env:
   - BUILDVARIANT=ubuntu.amd64
   - BUILDVARIANT=ubuntu.i686
   - BUILDVARIANT=osx
+group: deprecated-2017Q2
 language: cpp
 matrix:
   exclude:
