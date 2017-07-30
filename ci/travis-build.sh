@@ -127,7 +127,7 @@ function github_api()
 {
     case "${TRAVIS_OS_NAME}" in
     "linux")
-        docker run --rm -v $PWD:/data $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
+        docker run --rm -v "$PWD:/data" $QTHUB_DOCKER --api-token "$GITHUB_TOKEN" $@
     ;;
     *)
         github_curl_frontend $@
