@@ -61,7 +61,6 @@ void GetBuildStep(job, srcDir, platform, targetLabel, target)
                     env('MAKEFILE_DIR', '@MAKEFILE_DIR@')
                     env('DEPENDENCIES', '@DEPENDENCIES@')
                     env('GITHUB_TOKEN', '${GH_API_TOKEN}')
-                    env('BUILDVARIANT', target)
                 }
             }
         }
@@ -79,6 +78,8 @@ void GetBuildStep(job, srcDir, platform, targetLabel, target)
                     env('DEPENDENCIES', '@DEPENDENCIES@')
                     env('GITHUB_TOKEN', '${GITHUB_TOKEN}')
                     env('BUILDVARIANT', target)
+                    env('MANUAL_DEPLOY', '1')
+                    env('MANUAL_CONTEXT', 'continuous-integration/jenkins')
                 }
             }
         }

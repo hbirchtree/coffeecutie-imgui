@@ -7,7 +7,7 @@ branches:
 dependencies:
 - github:hbirchtree/coffeecutie:unstable
 display_name: Coffee Imgui
-engine_version: untagged-5b9b9a6300124f60de07-45-g82c08df
+engine_version: untagged-5b9b9a6300124f60de07-64-gd31f141
 makefile_location: ci
 name: coffeeimgui
 platforms:

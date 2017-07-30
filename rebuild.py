@@ -7,7 +7,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 from os.path import dirname, realpath, isfile, isdir
-from subprocess import call
+from subprocess import call, STDOUT
 from sys import executable
 
 if __name__ == '__main__':
