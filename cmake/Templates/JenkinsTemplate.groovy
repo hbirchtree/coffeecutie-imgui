@@ -93,7 +93,7 @@ void GetBuildStep(job, srcDir, platform, targetLabel, target)
 }
 
 linux_targets.each {
-    def j = job("@PROJECT_NAME@ ${it}")
+    def j = job("@PROJECT_NAME@_${it}")
 
     def srcDir = '${WORKSPACE}'
 
@@ -102,7 +102,7 @@ linux_targets.each {
 }
 
 osx_targets.each {
-    def j = job("@PROJECT_NAME@ ${it}")
+    def j = job("@PROJECT_NAME@_${it}")
 
     def srcDir = '${WORKSPACE}'
 
@@ -111,7 +111,7 @@ osx_targets.each {
 }
 
 windows_targets.each {
-    def j = job("@PROJECT_NAME@ ${it}")
+    def j = job("@PROJECT_NAME@_${it}")
 
     def srcDir = '${WORKSPACE}'
 
