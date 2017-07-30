@@ -61,6 +61,8 @@ void GetBuildStep(job, srcDir, platform, targetLabel, target)
                     env('MAKEFILE_DIR', 'ci')
                     env('DEPENDENCIES', 'hbirchtree/coffeecutie;')
                     env('GITHUB_TOKEN', '${GH_API_TOKEN}')
+                    env('MANUAL_DEPLOY', '1')
+                    env('MANUAL_CONTEXT', 'continuous-integration/jenkins')
                 }
             }
         }
