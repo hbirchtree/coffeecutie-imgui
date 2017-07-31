@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 from collections import namedtuple
 from argparse import ArgumentParser
 import requests
