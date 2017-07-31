@@ -10,7 +10,7 @@ COFFEE_DIR="$BUILD_DIR/coffee_lib"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
-GITHUBPY="$(dirname $0)/github_api.py"
+GITHUBPY="$CI_DIR/github_api.py"
 QTHUB_DOCKER="hbirch/coffeecutie:qthub-client"
 MAKEFILE="Makefile.standalone"
 
