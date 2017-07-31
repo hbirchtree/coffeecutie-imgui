@@ -213,6 +213,14 @@ function main()
 
         [[ -z $RELEASE ]] && die "No releases to upload to"
 
+        local SLUG=$(git -C "$SOURCE_DIR" remote get-url origin | grep -Po '^.*github.com[:\/]\K([\w\W]+).git$' | sed -e 's/.git//g')
+
+        [[ -z $SLUG ]] && die "Failed to get repo slug"
+
+        local COMMIT_SHA=$(git -C "$SOURCE_DIR" rev-parse HEAD)
+
+        [[ -z $COMMIT_SHA ]] && die "Failed to get commit SHA"
+
         github_api push asset "$SLUG:$RELEASE" "$LIB_ARCHIVE"
         github_api push status "$SLUG:$COMMIT_SHA" success "$BUILDVARIANT" \
                 --gh-context "$MANUAL_CONTEXT"
