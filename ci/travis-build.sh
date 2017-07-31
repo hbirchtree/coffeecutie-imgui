@@ -218,7 +218,8 @@ function main()
         local RELEASE="$(github_api list release $SLUG | head -1 | cut -d'|' -f 3)"
         [[ -z $RELEASE ]] && die "No releases to upload to"
 
-        github_api push asset "$SLUG:$RELEASE" "$LIB_ARCHIVE"
+        cd $(dirname $LIB_ARCHIVE)
+        github_api push asset "$SLUG:$RELEASE" "$(basename $LIB_ARCHIVE)"
         github_api push status "$SLUG:$COMMIT_SHA" success "$BUILDVARIANT" \
                 --gh-context "$MANUAL_CONTEXT"
     fi
