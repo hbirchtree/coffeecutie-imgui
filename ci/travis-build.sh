@@ -209,7 +209,7 @@ function main()
     tar -zcvf "$LIB_ARCHIVE" -C ${BUILD_DIR} build/
 
     if [[ ! -z $MANUAL_DEPLOY ]]; then
-        local SLUG=$(git -C "$SOURCE_DIR" remote get-url origin | grep -Po '^.*github.com[:\/]\K([\w\W]+).git$' | sed -e 's/.git//g')
+        local SLUG=$(git -C "$SOURCE_DIR" remote show -n origin | grep 'Fetch URL' | sed -e 's/^.*github.com[:\/]//g' -e 's/\.git//g')
         [[ -z $SLUG ]] && die "Failed to get repo slug"
 
         local COMMIT_SHA=$(git -C "$SOURCE_DIR" rev-parse HEAD)
