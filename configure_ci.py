@@ -204,7 +204,7 @@ def create_deploy_info(build_info):
             deploy_data.deploy_branches)
 
 
-def appveyor_gen_config(build_info):
+def appveyor_gen_config(build_info, srcDir):
     deploy_info = create_deploy_info(build_info)
 
     dependencies_list = ""
@@ -263,7 +263,7 @@ def appveyor_gen_config(build_info):
     }
 
 
-def travis_gen_config(build_info):
+def travis_gen_config(build_info, srcDir):
     def create_travis_matrix(current, build_info):
         env = create_env_matrix(current, build_info)
 
@@ -331,7 +331,7 @@ def travis_gen_config(build_info):
     }
 
 
-def jenkins_gen_config(build_info):
+def jenkins_gen_config(build_info, srcDir):
     def mk_groovy_list(l):
         glist = ''
         for e in l:
@@ -361,7 +361,6 @@ def jenkins_gen_config(build_info):
         else:
             return url
 
-    srcDir = realpath(dirname(__file__))
     template_dir = '%s/cmake/Templates' % srcDir
 
     deps = mk_dep_list(try_get_key(build_info, 'dependencies', []))
@@ -370,7 +369,7 @@ def jenkins_gen_config(build_info):
     osx_targets = create_env_matrix('osx', build_info)
     windows_targets = create_env_matrix('windows', build_info)
 
-    repo_url = git_get_origin(realpath(dirname(__file__)))
+    repo_url = git_get_origin(srcDir)
 
     repo_url = sshgit_to_https(repo_url)
 
@@ -421,14 +420,14 @@ class ConfigCreator(object):
         return self.func(*args)
 
 
-def generate_config_files(services, build_info):
+def generate_config_files(services, build_info, source_dir):
     service_configs = {}
 
     for service in services:
         for plat in try_get_key(build_info, 'platforms', []):
             if service.compatible_with(plat):
                 try:
-                    service_configs[service.get_filename()] = (service(build_info), service)
+                    service_configs[service.get_filename()] = (service(build_info, source_dir), service)
                 except FileNotFoundError as e:
                     print('%s: %s: %s: %s' % (service, e.__class__.__name__, e.filename, e.strerror))
                 except RuntimeError as e:
@@ -503,7 +502,7 @@ def main():
 
     build_info = parse_yaml(args.input_file)
 
-    configs = generate_config_files(CI_SERVICES, build_info)
+    configs = generate_config_files(CI_SERVICES, build_info, realpath(dirname(__file__)))
 
     process_configs(configs,
                     print_config=args.print_config,
