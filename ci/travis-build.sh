@@ -209,17 +209,14 @@ function main()
     tar -zcvf "$LIB_ARCHIVE" -C ${BUILD_DIR} build/
 
     if [[ ! -z $MANUAL_DEPLOY ]]; then
-        local RELEASE="$(github_api list release $SLUG | head -1 | cut -d'|' -f 3)"
-
-        [[ -z $RELEASE ]] && die "No releases to upload to"
-
         local SLUG=$(git -C "$SOURCE_DIR" remote get-url origin | grep -Po '^.*github.com[:\/]\K([\w\W]+).git$' | sed -e 's/.git//g')
-
         [[ -z $SLUG ]] && die "Failed to get repo slug"
 
         local COMMIT_SHA=$(git -C "$SOURCE_DIR" rev-parse HEAD)
-
         [[ -z $COMMIT_SHA ]] && die "Failed to get commit SHA"
+
+        local RELEASE="$(github_api list release $SLUG | head -1 | cut -d'|' -f 3)"
+        [[ -z $RELEASE ]] && die "No releases to upload to"
 
         github_api push asset "$SLUG:$RELEASE" "$LIB_ARCHIVE"
         github_api push status "$SLUG:$COMMIT_SHA" success "$BUILDVARIANT" \
