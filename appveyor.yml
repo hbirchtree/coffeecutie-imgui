@@ -20,7 +20,7 @@ deploy:
   'on':
     branch: master
   prelease: true
-  provider: releases
+  provider: GitHub
   release: Appveyor Build $(APPVEYOR_BUILD_NUMBER)
 environment:
   BUILDVARIANT: win32.amd64
