@@ -21,7 +21,6 @@ env:
   - PYTHONPATH=/usr/lib/python3/dist-packages
   matrix:
   - BUILDVARIANT=android.armv7a
-  - BUILDVARIANT=android.armv7a.kitkat
   - BUILDVARIANT=android.armv8a
   - BUILDVARIANT=emscripten.asmjs
   - BUILDVARIANT=emscripten.wasm
@@ -37,8 +36,6 @@ language: cpp
 matrix:
   exclude:
   - env: BUILDVARIANT=android.armv7a
-    os: osx
-  - env: BUILDVARIANT=android.armv7a.kitkat
     os: osx
   - env: BUILDVARIANT=android.armv8a
     os: osx
