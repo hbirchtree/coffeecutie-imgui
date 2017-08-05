@@ -1,5 +1,5 @@
 def linux_targets = ['ubuntu.i686', 'ubuntu.amd64', 'steam.amd64', 'maemo.armv7a', 'fedora.amd64', 'emscripten.wasm', 'emscripten.asmjs', 'android.armv8a', 'android.armv7a', ]
-def osx_targets = ['osx', 'ios', ]
+def osx_targets = ['osx', 'ios.x86_64', ]
 def windows_targets = ['win32.amd64', 'uwp.amd64', ]
 
 String linux_label = 'linux && docker'

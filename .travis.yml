@@ -29,7 +29,7 @@ env:
   - BUILDVARIANT=steam.amd64
   - BUILDVARIANT=ubuntu.amd64
   - BUILDVARIANT=ubuntu.i686
-  - BUILDVARIANT=ios
+  - BUILDVARIANT=ios.x86_64
   - BUILDVARIANT=osx
 group: deprecated-2017Q2
 language: cpp
@@ -53,10 +53,12 @@ matrix:
     os: osx
   - env: BUILDVARIANT=ubuntu.i686
     os: osx
-  - env: BUILDVARIANT=ios
+  - env: BUILDVARIANT=ios.x86_64
     os: linux
   - env: BUILDVARIANT=osx
     os: linux
+notifications:
+  email: true
 os:
 - linux
 - osx
