@@ -28,6 +28,8 @@ ForEach($dep in $DEPENDENCIES -split ";") {
                 echo "Extracting $dep from archive..."
                 Expand-Archive -Path $zipfile -DestinationPath $dest_dir
                 echo "Successfully extracted library $dep!"
+		ls $dest_dir
+		ls $dest_dir\*
             }
         }
     } catch {
