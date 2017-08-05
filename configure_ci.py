@@ -185,7 +185,7 @@ def get_dep_list(build_info):
     dependencies = ''
     deps = try_get_key(build_info, 'dependencies', [])
     for dep in deps:
-        dependencies = '%s:%s;%s' % (dep, deps[dep], dependencies)
+        dependencies = '%s;%s' % (dep, dependencies)
     return dependencies
 
 
@@ -224,6 +224,8 @@ def appveyor_gen_config(build_info, srcDir):
     script_loc = build_info['script_location'].replace('/', '\\')
     make_loc = build_info['makefile_location'].replace('/', '\\')
 
+    deploy_patterns = ''
+
     return {
         'version': '{build}',
         'skip_tags': True,
@@ -245,7 +247,8 @@ def appveyor_gen_config(build_info, srcDir):
             'CMAKE_BIN': 'C:\\Program Files\\CMake\\bin\\cmake.exe',
             'MAKEFILE_DIR': make_loc,
             'BUILDVARIANT': 'win32.amd64',
-            'DEPENDENCIES': dependencies_list
+            'DEPENDENCIES': dependencies_list,
+            'DEPLOY_PATTERNS': deploy_patterns
         },
         'install': [
             {'ps': '%s\\appveyor-deps.ps1' % script_loc}
@@ -256,18 +259,31 @@ def appveyor_gen_config(build_info, srcDir):
         'artifacts': [
             {'path': '*.zip', 'name': 'Libraries'}
         ],
-        'deploy': [
-            {
-                'provider': 'GitHub',
-                'release': 'Appveyor Build $(APPVEYOR_BUILD_NUMBER)',
-                'description': 'Automatic build by Appveyor',
-                'artifact': 'Libraries',
-                'prelease': True,
-                'on': {
-                    'branch': deploy_info[1].pop()
-                },
-            }
+        'deploy_script': [
+            {'ps': '%s\\appveyor-deploy.ps1' % script_loc}
         ]
+        # 'deploy': [
+        #     {
+        #         'provider': 'GitHub',
+        #         'release': 'automatic-build-$(APPVEYOR_BUILD_NUMBER)',
+        #         'description': 'Automatic build',
+        #         'artifact': 'Libraries',
+        #         'prelease': True,
+        #         'on': {
+        #             'appveyor_repo_tag': True
+        #         },
+        #     },
+        #     {
+        #         'provider': 'GitHub',
+        #         'release': 'automatic-build-$(APPVEYOR_BUILD_NUMBER)',
+        #         'description': 'Automatic build',
+        #         'artifact': 'Libraries',
+        #         'prelease': True,
+        #         'on': {
+        #             'branch': deploy_info[1].pop()
+        #         },
+        #     }
+        # ]
     }
 
 
@@ -305,6 +321,25 @@ def travis_gen_config(build_info, srcDir):
 
     dependencies = get_dep_list(build_info)
 
+    deploy_provider = {
+            'provider': 'releases',
+            'api_key': '${GITHUB_TOKEN}',
+            'file': 'libraries_$BUILDVARIANT.tar.gz',
+            'skip_cleanup': True,
+            'on': {}
+    }
+
+    deploy_provider_tag = deploy_provider.copy()
+    deploy_provider_branch = deploy_provider.copy()
+
+    deploy_provider_branch['on'] = {
+        'branch': deploy_data[1].pop()
+    }
+
+    deploy_provider_tag['on'] = {
+        'tags': True
+    }
+
     return {
         'language': 'cpp',
         'dist': 'trusty',
@@ -332,15 +367,11 @@ def travis_gen_config(build_info, srcDir):
         'branches': {
             'only': deploy_data[0]
         },
-        'deploy': {
-            'provider': 'releases',
-            'api_key': '${GITHUB_TOKEN}',
-            'file': 'libraries_$BUILDVARIANT.tar.gz',
-            'skip_cleanup': True,
-            'on': {
-                'branch': deploy_data[1].pop()
-            }
-        }
+        'after_success': ['%s/travis-deploy.sh' % script_loc]
+        # 'deploy': [
+        #     deploy_provider_tag,
+        #     deploy_provider_branch
+        # ]
     }
 
 
@@ -471,9 +502,6 @@ def process_configs(configs, print_config=False, overwrite=False, cur_dir='.'):
             print(data)
             print('-' * 80)
         else:
-            if not overwrite and isfile(trg_file):
-                print('Updated %s' % trg_file)
-                continue
             with open(trg_file, mode='w') as f:
                 f.write(data)
 

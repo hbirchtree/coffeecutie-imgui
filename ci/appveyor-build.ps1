@@ -12,7 +12,7 @@ ForEach($dep in $env:DEPENDENCIES -split ";") {
         continue
     }
     try{
-        $release = (Invoke-RestMethod -Uri https://api.github.com/repos/$dep/releases/latest -Headers @{"Accept" = "application/vnd.github.v3+json"})
+        $release = (Invoke-RestMethod -Uri https://api.github.com/repos/$dep/releases/latest -Headers @{"Accept" = "application/vnd.github.v3+json"; "Authorization" = "token $env:GITHUB_TOKEN"})
 
         echo "Found release for $dep"
 
@@ -36,6 +36,7 @@ ForEach($dep in $env:DEPENDENCIES -split ";") {
         }
     } catch {
         echo "Failed to download $dep"
+        echo $_.Exception.Message
     }
 }
 
@@ -48,9 +49,6 @@ $Args = ("-DCOFFEE_BUILD_OPENSSL=OFF","-DCOFFEE_BUILD_OPENAL=OFF",`
 $BuildDir = "$env:BUILD_DIR\build_$env:BUILDVARIANT"
 
 echo "Starting CMake process"
-BuildProject $env:BUILDVARIANT $env:APPVEYOR_BUILD_FOLDER $BuildDir $LIBRARY_DIR "Debug" $Args
-
-cd "$BuildDir\out"
-7z a "$env:APPVEYOR_BUILD_FOLDER\libraries_$env:BUILDVARIANT.zip" "*"
+BuildProject $env:BUILDVARIANT $env:APPVEYOR_BUILD_FOLDER $BuildDir $LIBRARY_DIR "$env:CONFIGURATION" $Args
 
 cd $PrevPwd

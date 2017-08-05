@@ -19,7 +19,7 @@ MAKEFILE="Makefile.standalone"
 
 INFOPY="$SOURCE_DIR/buildinfo.py"
 
-SCRIPT_DIR=$($INFOPY --source-dir $SOURCE_DIR script_location)
+SCRIPT_DIR="$SOURCE_DIR/$($INFOPY --source-dir $SOURCE_DIR script_location)"
 
 HELPER="$SCRIPT_DIR/travis-helper.py"
 GITHUBPY="$SCRIPT_DIR/github_api.py"

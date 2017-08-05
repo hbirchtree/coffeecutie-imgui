@@ -4,6 +4,8 @@ from argparse import ArgumentParser
 import requests
 import json
 
+from sys import stderr
+
 
 REQUEST_POST = 0
 REQUEST_GET  = 1
@@ -24,7 +26,7 @@ class GithubRequestData:
 
 
 def printerr(s):
-    print(s, file=open('/dev/stderr', mode='w'))
+    print(s, file=stderr)
 
 
 def rest_request(url, headers, data, form=None, rtype=REQUEST_GET):
@@ -106,13 +108,28 @@ def gh_get_release(repo, release):
 
 def handle_cmd(action, cat, item, select):
     if action == 'list':
+        import re
         if cat == 'release':
             # Just get and format the list of releases
             resp = gh_request('/repos/%s/releases' % item)
             gh_errorhandle(resp)
             j = resp.content
+            patterns = []
+            for e in select:
+                patterns += [re.compile(e)]
             for r in j:
-                print('%s|%s|%s' % (r['id'], item, r['tag_name']))
+                match = False
+                if len(patterns) < 1:
+                    match = True
+                for e in patterns:
+                    match = match or e.match(r['tag_name'])
+                if not match:
+                    continue
+                print('%s|%s|%s' % (
+                    r['id'],
+                    item,
+                    r['tag_name']
+                ))
         elif cat == 'asset':
             item, release = item.split(':')
             # First, get list of releases to get the release ID
@@ -124,13 +141,42 @@ def handle_cmd(action, cat, item, select):
             resp = gh_request('/repos/%s/releases/%s/assets' % (item, release_id))
             gh_errorhandle(resp)
             j = resp.content
+            patterns = []
+            for e in select:
+                patterns += [re.compile(e)]
             for a in j:
-                print('%s|%s|%s|%s|%s|%s|%s' % (item, release,
-                                             a['id'],
-                                             release_data['name'],
-                                             a['name'],
-                                             '',
-                                             release_data['tag_name']))
+                match = False
+                if len(patterns) < 1:
+                    match = True
+                for e in patterns:
+                    match = match or e.match(a['name'])
+                print('%s|%s|%s|%s|%s|%s|%s' % (
+                    item, release,
+                    a['id'],
+                    release_data['name'],
+                    a['name'],
+                    '',
+                    release_data['tag_name']
+                ))
+        elif cat == 'tag':
+            resp = gh_request('/repos/%s/tags' % (item,))
+            gh_errorhandle(resp)
+            patterns = []
+            for e in select:
+                patterns += [re.compile(e)]
+            for r in resp.content:
+                match = False
+                if len(patterns) < 1:
+                    match = True
+                for e in patterns:
+                    match = match or e.match(r['commit']['sha'])
+                if not match:
+                    continue
+                print('%s|%s|%s' % (
+                    item,
+                    r['name'],
+                    r['commit']['sha']
+                ))
     elif action == 'pull':
         if cat == 'asset':
             resp = gh_request('/repos/%s/releases/assets/%s' % (item, select[0]))
@@ -149,7 +195,6 @@ def handle_cmd(action, cat, item, select):
             raise RuntimeError('No API token, cannot push')
 
         if cat == 'asset':
-
             item, release = item.split(':')
             release_data = gh_get_release(item, release)
             assert ('id' in release_data)
@@ -193,6 +238,23 @@ def handle_cmd(action, cat, item, select):
                                     'Content-Type': 'application/json'
                                 })
             gh_errorhandle(status)
+        elif cat == 'release':
+            assert(len(select) == 3)
+
+            release_data = {
+                'tag_name': select[0],
+                'name': select[1],
+                'body': select[2],
+                'prerelease': True
+            }
+
+            status = gh_request('/repos/%s/releases' % (item,),
+                                data=json.dumps(release_data),
+                                rtype=REQUEST_POST,
+                                headers={
+                                    'Content-Type': 'application/json'
+                                })
+            gh_errorhandle(status)
 
 
 def main():
@@ -205,7 +267,7 @@ def main():
                       help='action to be performed on category')
 
     args.add_argument('category', type=str,
-                      choices=['asset', 'release', 'status'],
+                      choices=['asset', 'release', 'status', 'tag'],
                       help='category of item to pull')
 
     args.add_argument('item', type=str,

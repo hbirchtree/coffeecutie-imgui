@@ -13,21 +13,16 @@ clone_script:
 - cmd: git checkout -qf %APPVEYOR_REPO_COMMIT%
 configuration:
 - Debug
-deploy:
-- artifact: Libraries
-  description: Automatic build by Appveyor
-  'on':
-    branch: master
-  prelease: true
-  provider: GitHub
-  release: Appveyor Build $(APPVEYOR_BUILD_NUMBER)
-  auth_token:
-    secure: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
+deploy_script:
+- ps: ci\appveyor-deploy.ps1
 environment:
   BUILDVARIANT: win32.amd64
   BUILD_DIR: C:\project\%APPVEYOR_PROJECT_SLUG%
   CMAKE_BIN: C:\Program Files\CMake\bin\cmake.exe
   DEPENDENCIES: hbirchtree/coffeecutie;
+  DEPLOY_PATTERNS: ''
+  GITHUB_TOKEN:
+    secure: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
   MAKEFILE_DIR: ci
 install:
 - ps: ci\appveyor-deps.ps1
