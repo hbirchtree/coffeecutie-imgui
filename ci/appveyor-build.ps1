@@ -7,7 +7,7 @@ $LIBRARY_DIR = "$env:BUILD_DIR\libraries"
 
 rm -r $LIBRARY_DIR
 
-ForEach($dep in $DEPENDENCIES -split ";") {
+ForEach($dep in $env:DEPENDENCIES -split ";") {
     if ($dep.Length -eq 0) {
         continue
     }
@@ -21,10 +21,10 @@ ForEach($dep in $DEPENDENCIES -split ";") {
         $assets = $release.assets
 
         ForEach($asset in $assets) {
-            if ($asset.name.Contains("$BUILDVARIANT")) {
+            if ($asset.name.Contains("$env:BUILDVARIANT")) {
                 $zipfile = $asset.name
                 $dest_dir = $LIBRARY_DIR
-                echo "Downloading $dep $BUILDVARIANT library..."
+                echo "Downloading $dep $env:BUILDVARIANT library..."
                 Invoke-WebRequest $asset.browser_download_url -UseBasicParsing -OutFile $zipfile
                 echo "Successfully downloaded library for $dep!"
 
