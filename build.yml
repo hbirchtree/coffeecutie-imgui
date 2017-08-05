@@ -7,7 +7,7 @@ branches:
 dependencies:
 - github:hbirchtree/coffeecutie:unstable
 display_name: Coffee Imgui
-engine_version: Appveyor-Build-529-5-g4d10a1b
+engine_version: Appveyor-Build-529-8-g95597d8
 makefile_location: ci
 name: coffeeimgui
 platforms:

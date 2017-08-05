@@ -99,6 +99,15 @@ macro( MACAPP_PACKAGE
         )
 
     if(IOS)
+        set_target_properties ( ${TARGET} PROPERTIES
+                            XCODE_PRODUCT_TYPE "com.apple.product-type.application"
+                            XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11"
+                            XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++"
+                            )
+        
+        target_link_libraries ( ${TARGET} ${SDL2_LIBRARY} ${SDL2_LIBRARIES} )
+        
+        
         set ( IOS_NAME "${TITLE}" )
         set ( IOS_IDENTIFIER "${TITLE}" )
         set ( IOS_INFO "${INFO_STRING}" )
@@ -107,15 +116,13 @@ macro( MACAPP_PACKAGE
         set ( IOS_SHORTVER "${COFFEE_VERSION_CODE}" )
         set ( IOS_LONGVER "${COFFEE_BUILD_STRING}" )
 
-        set ( IOS_EXEC "${TITLE}" )
+        set ( IOS_EXEC "${TARGET}" )
         set ( IOS_LANG "English" )
         set ( IOS_LAUNCH_IMG "Default")
         set ( IOS_HIDE_STATUSBAR "true" )
         set ( IOS_PRERENDER_ICON "true" )
 
         set ( IOS_ORIENTATION "UIInterfaceOrientationLandscapeLeft" )
-
-        set ( IOS_SIGNATURE "?" )
 
         set ( IOS_PLIST_FILE "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}_Info.plist.in" )
 
@@ -143,13 +150,23 @@ macro( MACAPP_PACKAGE
         MACOSX_BUNDLE_LONG_VERSION_STRING "${COFFEE_BUILD_STRING}"
         )
 
-    install(
-        TARGETS
-        ${TARGET}
+    if(IOS)
+        install(
+            TARGETS
+            ${TARGET}
 
-        DESTINATION
-        ${CMAKE_PACKAGED_OUTPUT_PREFIX}/apple-osx
-        )
+            DESTINATION
+            ${CMAKE_PACKAGED_OUTPUT_PREFIX}/apple-ios
+            )
+    else()
+        install(
+            TARGETS
+            ${TARGET}
+
+            DESTINATION
+            ${CMAKE_PACKAGED_OUTPUT_PREFIX}/apple-osx
+            )
+    endif()
     #    else()
     #        set ( APP_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TITLE}.app" )
 
