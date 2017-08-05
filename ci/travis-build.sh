@@ -182,6 +182,8 @@ function build_standalone()
         IFS=$OLD_IFS download_libraries "$dep" "$1"
     done
 
+    env
+
     make -f "$CI_DIR/$MAKEFILE" \
         -e SOURCE_DIR="$SOURCE_DIR" \
         -e COFFEE_DIR="$COFFEE_DIR" $@
