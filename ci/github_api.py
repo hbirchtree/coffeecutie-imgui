@@ -201,7 +201,6 @@ def handle_cmd(action, cat, item, select):
             if len(release_data) == 0:
                 raise RuntimeError('No releases found')
             assert ('id' in release_data)
-            print()
             with open(select[0], mode='rb') as f:
                 data = f.read()
                 endpoint = release_data['upload_url']
