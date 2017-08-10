@@ -5,7 +5,7 @@ branches:
 - build: true
   name: testing
 dependencies:
-  hbirchtree/coffeecutie: automated-release-1-6-g58bbe23
+  hbirchtree/coffeecutie: automated-release-1-10-gfc602aa
 display_name: Coffee Imgui
 makefile_location: ci
 name: coffeeimgui
