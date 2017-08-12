@@ -5,7 +5,7 @@ branches:
 - build: true
   name: testing
 dependencies:
-  hbirchtree/coffeecutie: automated-release-2.1
+  hbirchtree/coffeecutie: automated-release-2.1-5-g826d616
 display_name: Coffee Imgui
 makefile_location: ci
 name: coffeeimgui
@@ -19,7 +19,7 @@ platforms:
   fedora:
   - amd64
   maemo:
-  - armv7a
+  - armel
   osx:
   - osx
   - ios.x86_64
