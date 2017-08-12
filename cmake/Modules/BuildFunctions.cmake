@@ -142,14 +142,6 @@ macro(COFFEE_ADD_ELIBRARY TARGET LINKOPT SOURCES LIBRARIES HEADER_DIR)
     endif()
 
 #    install (
-#        DIRECTORY
-#        ${HEADER_DIR}
-
-#        DESTINATION
-#        include/
-#        )
-
-#    install (
 #        FILES "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${TARGET}.libraries"
 #        DESTINATION deps)
 endmacro()
