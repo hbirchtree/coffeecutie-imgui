@@ -83,7 +83,7 @@ add_definitions(
 
 coffee_add_library ( CoffeeImGui
     "${SRCS}" "${LIBS}"
-    "${CMAKE_SOURCE_DIR}/include/coffee/imgui"
+    "${CMAKE_SOURCE_DIR}/include/coffee"
     )
 
 coffee_add_application_longerer(
@@ -93,4 +93,9 @@ coffee_add_application_longerer(
     "src/main.cpp" "CoffeeImGui"
     "" "" ""
     "${PERMS}" ""
+    )
+
+install (
+    DIRECTORY "${CMAKE_SOURCE_DIR}/include/coffee"
+    DESTINATION include/
     )
