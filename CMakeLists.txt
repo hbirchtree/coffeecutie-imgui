@@ -83,7 +83,7 @@ add_definitions(
 
 coffee_add_library ( CoffeeImGui
     "${SRCS}" "${LIBS}"
-    "${CMAKE_SOURCE_DIR}/include/coffee"
+    "${CMAKE_SOURCE_DIR}/include/coffee/imgui"
     )
 
 coffee_add_application_longerer(
