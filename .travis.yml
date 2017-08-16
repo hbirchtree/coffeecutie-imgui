@@ -26,6 +26,7 @@ env:
   - BUILDVARIANT=ubuntu.i686
   - BUILDVARIANT=ios.x86_64
   - BUILDVARIANT=osx
+  - BUILDVARIANT=coverage
 group: deprecated-2017Q2
 language: cpp
 matrix:
@@ -52,6 +53,8 @@ matrix:
     os: linux
   - env: BUILDVARIANT=osx
     os: linux
+  - env: BUILDVARIANT=coverage
+    os: osx
 notifications:
   email: true
 os:
