@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 from sys import stderr
-from common import build_yml_filespec
 
 from yaml import load, dump
+
+from common import build_yml_filespec
+
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:

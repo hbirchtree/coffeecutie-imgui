@@ -6,11 +6,9 @@ try:
 except ImportError:
     from yaml import Loader, Dumper
 
-from os.path import isfile, dirname, realpath, curdir
+from os.path import dirname, realpath
 
 from argparse import ArgumentParser
-
-from collections import namedtuple
 
 from common import *
 

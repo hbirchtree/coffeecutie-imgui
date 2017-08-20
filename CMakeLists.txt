@@ -99,3 +99,16 @@ install (
     DIRECTORY "${CMAKE_SOURCE_DIR}/include/coffee"
     DESTINATION include/
     )
+
+install (
+    FILES
+    "${CMAKE_SOURCE_DIR}/libs/imgui/imgui.h"
+    "${CMAKE_SOURCE_DIR}/libs/imgui/imconfig.h"
+
+    DESTINATION include/
+    )
+install (
+    FILES
+    "${CMAKE_SOURCE_DIR}/FindCoffeeImGui.cmake"
+    DESTINATION share/cmake/Modules
+    )

@@ -12,4 +12,4 @@ set ( CMAKE_LINKER "/usr/bin/${TOOLCHAIN_PREFIX}-gcc" CACHE FILEPATH "" )
 
 set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=cortex-a8" )
 
-add_definitions(-D__MAEMOFREMANTLE__ -D__MAEMO__)
+add_definitions(-D__MAEMOFREMANTLE__ -D__MAEMO__ -DCOFFEE_GLES20_MODE)
