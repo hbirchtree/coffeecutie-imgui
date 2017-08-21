@@ -7,7 +7,8 @@ function build_info()
 
 TRAVIS_OS_NAME=linux
 BUILDVARIANT=$1
-DEPENDENCIES=$(build_info dependencies)
+DEPENDENCIES="$(build_info dependencies)"
+DEPENDENCIES="$(echo $DEPENDENCIES | sed -e 's/ /%/g')"
 MAKEFILE_DIR=$(build_info makefile_location)
 SCRIPT_DIR=
 
