@@ -55,7 +55,14 @@ if __name__ == '__main__':
             else:
                 break
 
-        print(values)
+        if type(values) == dict:
+            for k in values.keys():
+                print(k)
+        elif type(values) == list:
+            for v in values:
+                print(v)
+        else:
+            print(values)
     except [IndexError, KeyError]:
         pass
 

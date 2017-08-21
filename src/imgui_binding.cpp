@@ -42,7 +42,6 @@ struct ImGuiData
     }
     ~ImGuiData()
     {
-        cDebug("Deconstructing!");
     }
 
     GFX::V_DESC attributes;
@@ -252,15 +251,27 @@ bool Coffee::CImGui::CreateDeviceObjects()
         auto& pip = im_data->pipeline;
 
         auto vd = Bytes::CreateString(vertex_shader);
-        vert.compile(ShaderStage::Vertex, vd);
+        if(!vert.compile(ShaderStage::Vertex, vd))
+            cDebug("Failed to compile vertex shader, using: \n{0}",
+                   vertex_shader);
 
         auto fd = Bytes::CreateString(fragment_shader);
-        frag.compile(ShaderStage::Fragment, fd);
+        if(!frag.compile(ShaderStage::Fragment, fd))
+            cDebug("Failed to compile fragment shader, using: \n{0}",
+                   fragment_shader);
 
-        pip.attach(vert, ShaderStage::Vertex);
-        pip.attach(frag, ShaderStage::Fragment);
+        if(!pip.attach(vert, ShaderStage::Vertex))
+            cDebug("Failed to attach vertex shader");
+        if(!pip.attach(frag, ShaderStage::Fragment))
+            cDebug("Failed to attach fragment shader");
 
-        pip.assemble();
+        if(!pip.assemble())
+            cDebug("Failed to assemble shader pipeline");
+
+        cDebug("Shader pipeline is assembled");
+
+        fprintf(stderr, "Shaders in use: \nVertex:\n%s\n\nFragment:\n%s",
+               vertex_shader, fragment_shader);
 
 //        vert.dealloc();
 //        frag.dealloc();
