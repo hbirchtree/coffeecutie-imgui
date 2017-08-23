@@ -26,10 +26,11 @@ env:
   - BUILDVARIANT=ubuntu.i686
   - BUILDVARIANT=ios.x86_64
   - BUILDVARIANT=osx
-  - BUILDVARIANT=coverage
 group: deprecated-2017Q2
 language: cpp
 matrix:
+  allow_failures:
+  - env: BUILDVARIANT=maemo.armel
   exclude:
   - env: BUILDVARIANT=android.armv7a
     os: osx
@@ -53,8 +54,6 @@ matrix:
     os: linux
   - env: BUILDVARIANT=osx
     os: linux
-  - env: BUILDVARIANT=coverage
-    os: osx
 notifications:
   email: true
 os:

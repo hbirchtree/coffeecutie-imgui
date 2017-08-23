@@ -105,11 +105,14 @@ function build_standalone()
     OLD_IFS=$IFS
     IFS='%'
     for dep in $DEPENDENCIES; do
-        IFS=$OLD_IFS download_libraries "$dep" "$1"
+        [ -z $NODEPS ] && IFS=$OLD_IFS download_libraries "$dep" "$1"
     done
+
+    [ -z $CONFIGURATION ] && export CONFIGURATION=Debug
 
     make -f "$CI_DIR/$MAKEFILE" \
         -e SOURCE_DIR="$SOURCE_DIR" \
+        -e BUILD_TYPE="$CONFIGURATION" \
         -e COFFEE_DIR="$COFFEE_DIR" $@
 
     # We want to exit if the Make process fails horribly

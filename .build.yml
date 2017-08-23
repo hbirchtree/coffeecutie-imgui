@@ -1,12 +1,14 @@
+allow_fail:
+- env: BUILDVARIANT=maemo.armel
 branches:
 - build: true
   deploy: true
   name: master
 - build: true
   name: testing
-coverage: true
+coverage: false
 dependencies:
-  hbirchtree/coffeecutie: automated-release-2.5
+  hbirchtree/coffeecutie: automated-release-2.5.1
 display_name: Coffee Imgui
 exports:
   COFFEE_IMGUI_INCLUDE_DIR:

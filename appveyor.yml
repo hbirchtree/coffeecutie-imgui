@@ -1,6 +1,3 @@
-artifacts:
-- name: Libraries
-  path: '*.zip'
 branches:
   only:
   - master
