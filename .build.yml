@@ -11,7 +11,7 @@ branches:
   name: testing
 coverage: false
 dependencies:
-  hbirchtree/coffeecutie: automated-release-2.5.1-23-g1fce7f1
+  hbirchtree/coffeecutie: automated-release-2.6-5-g3185073
 display_name: Coffee Imgui
 exports:
   COFFEE_IMGUI_INCLUDE_DIR:
@@ -49,4 +49,6 @@ platforms:
   - win32
   - uwp
 script_location: ci
+secrets:
+  appveyor: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
 template_location: cmake/Templates

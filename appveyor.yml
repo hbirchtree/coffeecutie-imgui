@@ -1,26 +1,37 @@
+before_build:
+- ps: ci\appveyor-build.ps1
+before_deploy:
+- cmd: cmake.exe --build %BUILD_DIR% --target install --config %CONFIGURATION%
 branches:
   only:
   - master
   - testing
-build_script:
-- ps: ci\appveyor-build.ps1
+build:
+  parallel: true
+  project: CoffeeImGui.sln
+  verbosity: minimal
 clone_script:
 - cmd: git clone -q --recursive --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git
-    %APPVEYOR_BUILD_FOLDER%
-- cmd: git checkout -qf %APPVEYOR_REPO_COMMIT%
+    %SOURCE_DIR%
+- cmd: cd %SOURCE_DIR% && git checkout -qf %APPVEYOR_REPO_COMMIT%
 configuration:
 - Debug
 deploy_script:
 - ps: ci\appveyor-deploy.ps1
 environment:
-  BUILDVARIANT: win32.amd64
-  BUILD_DIR: C:\project\%APPVEYOR_PROJECT_SLUG%
-  CMAKE_BIN: C:\Program Files\CMake\bin\cmake.exe
+  BUILD_DIR: C:\projects\%APPVEYOR_PROJECT_SLUG%
+  CMAKE_BIN: cmake.exe
   DEPENDENCIES: hbirchtree/coffeecutie;
   DEPLOY_PATTERNS: ''
   GITHUB_TOKEN:
     secure: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
   MAKEFILE_DIR: ci
+  NOBUILD: 1
+  SAME_BUILD_DIR: 1
+  SOURCE_DIR: C:\projects\%APPVEYOR_PROJECT_SLUG%\src
+  matrix:
+  - BUILDVARIANT: uwp.amd64
+  - BUILDVARIANT: win32.amd64
 install:
 - ps: ci\appveyor-deps.ps1
 matrix:

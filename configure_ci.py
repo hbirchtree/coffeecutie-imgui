@@ -246,10 +246,10 @@ def appveyor_gen_config(build_info, srcDir):
         'platform': 'x64',
         'clone_script': [
             {
-                'cmd': 'git clone -q --recursive --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git %APPVEYOR_BUILD_FOLDER%',
+                'cmd': 'git clone -q --recursive --branch=%APPVEYOR_REPO_BRANCH% https://github.com/%APPVEYOR_REPO_NAME%.git %SOURCE_DIR%',
             },
             {
-                'cmd': 'git checkout -qf %APPVEYOR_REPO_COMMIT%'
+                'cmd': 'cd %SOURCE_DIR% && git checkout -qf %APPVEYOR_REPO_COMMIT%'
             }
         ],
         'matrix': {
@@ -257,7 +257,10 @@ def appveyor_gen_config(build_info, srcDir):
         },
         'environment': {
             'matrix': matrix,
-            'BUILD_DIR': 'C:\\project\\%APPVEYOR_PROJECT_SLUG%',
+            'BUILD_DIR': 'C:\\projects\\%APPVEYOR_PROJECT_SLUG%',
+            'SOURCE_DIR': 'C:\\projects\\%APPVEYOR_PROJECT_SLUG%\\src',
+            'NOBUILD': 1,
+            'SAME_BUILD_DIR': 1,
             'CMAKE_BIN': 'cmake.exe',
             'MAKEFILE_DIR': make_loc,
             'DEPENDENCIES': dependencies_list,
@@ -269,8 +272,16 @@ def appveyor_gen_config(build_info, srcDir):
         'install': [
             {'ps': '%s\\appveyor-deps.ps1' % script_loc}
         ],
-        'build_script': [
+        'build': {
+            'parallel': True,
+            'verbosity': 'minimal',
+            'project': '%s.sln' % (try_get_key(build_info, 'name', 'coffee'),)
+        },
+        'before_build': [
             {'ps': '%s\\appveyor-build.ps1' % script_loc}
+        ],
+        'before_deploy': [
+            {'cmd': 'cmake.exe --build %BUILD_DIR% --target install --config %CONFIGURATION%'}
         ],
         'deploy_script': [
             {'ps': '%s\\appveyor-deploy.ps1' % script_loc}
@@ -364,14 +375,17 @@ def jenkins_gen_config(build_info, src_dir):
 
     def sshgit_to_https(url):
         import re
-        patt = re.compile('git@(.+):(.+)')
+        # git@github.com:hbirchtree/coffeecutie.git
+        # ssh://git@github.com/hbirchtree/coffeecutie.git
+        patterns = [re.compile('^.*git@([^/:]+)[:/](.+)'),
+                    #re.compile('ssh://git@([^/]+)/(.+)')
+                   ]
 
-        match = patt.findall(url)
-
-        if match:
-            return 'https://%s/%s' % (match[0][0], match[0][1])
-        else:
-            return url
+        for patt in patterns:
+            match = patt.findall(url)
+            if match:
+                return 'https://%s/%s' % (match[0][0], match[0][1])
+        return url
 
     template_dir = '%s/cmake/Templates' % src_dir
 
