@@ -2,7 +2,7 @@
 #include <coffee/core/CDebug>
 #include <coffee/core/CFiles>
 
-#include <coffee/sdl2/CSDL2GLRenderer>
+#include <coffee/windowing/renderer/renderer.h>
 #include <coffee/graphics/apis/CGLeamRHI>
 #include <coffee/core/platform_data.h>
 #include <coffee/core/input/eventhandlers.h>
