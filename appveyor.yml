@@ -32,6 +32,7 @@ environment:
   matrix:
   - BUILDVARIANT: uwp.amd64
   - BUILDVARIANT: win32.amd64
+image: Visual Studio 2015
 install:
 - ps: ci\appveyor-deps.ps1
 matrix:
