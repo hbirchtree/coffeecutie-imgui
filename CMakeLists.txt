@@ -20,8 +20,8 @@ set ( SRCS
     )
 
 set ( LIBS
-    Coffee::CoffeeCore; Coffee::CoffeeRenderer_Default;
-    Coffee::CoffeeGLeamRHI;
+    CoffeeCore; CoffeeRenderer_Default;
+    CoffeeGLeamRHI;
     ${STANDARDLIBS_LIBRARIES};
     ${SDL2_LIBRARY};${SDL2_LIBRARIES}
     )
@@ -49,6 +49,7 @@ target_include_directories ( CoffeeImGui
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/imgui/>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include/>
     )
 
 coffee_add_application_longerer(
@@ -59,5 +60,7 @@ coffee_add_application_longerer(
     "" "" ""
     "${PERMS}" ""
     )
+
+coffee_bundle_includes( ${CMAKE_SOURCE_DIR}/include )
 
 End_Subproject()

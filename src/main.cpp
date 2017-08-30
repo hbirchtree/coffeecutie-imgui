@@ -1,3 +1,4 @@
+#include <CoffeeDef.h>
 #include <coffee/core/CApplication>
 #include <coffee/core/CDebug>
 #include <coffee/core/CFiles>

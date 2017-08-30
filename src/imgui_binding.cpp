@@ -6,6 +6,7 @@
 // If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
+#include <CoffeeDef.h>
 #include <coffee/imgui/imgui_binding.h>
 #include <coffee/graphics/apis/CGLeamRHI>
 #include <coffee/core/CDebug>
