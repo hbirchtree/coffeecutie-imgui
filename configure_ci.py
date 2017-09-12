@@ -238,7 +238,6 @@ def appveyor_gen_config(build_info, srcDir):
 
     return {
         'version': '{build}',
-        'image': 'Visual Studio 2015',
         'skip_tags': True,
         'branches': {
             'only': deploy_info[0]

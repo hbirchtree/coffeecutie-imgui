@@ -20,6 +20,8 @@ using GFX = RHI::GLEAM::GLEAM_API;
 using GFX = RHI::NullAPI;
 #endif
 
+#define COFFEE_GLES20_MODE
+
 // Data
 static double       g_Time = 0.0;
 //static bool         g_MousePressed[3] = { false, false, false };
@@ -306,9 +308,9 @@ bool Coffee::CImGui::CreateDeviceObjects()
         GFX::V_ATTR col;
         auto& a = im_data->attributes;
 
-        pos.m_idx = 0;
-        tex.m_idx = 1;
-        col.m_idx = 2;
+        pos.m_idx = attr_idx[0];
+        tex.m_idx = attr_idx[1];
+        col.m_idx = attr_idx[2];
 
         pos.m_size = tex.m_size = 2;
         col.m_size = 4;

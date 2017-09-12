@@ -7,7 +7,9 @@ Init_Subproject()
 
 import_coffee_lib ( Coffee REQUIRED )
 find_package ( StandardLibs REQUIRED )
-find_package ( SDL2 REQUIRED )
+if(COFFEE_BUILD_SDL2)
+    find_package ( SDL2 REQUIRED )
+endif()
 
 set ( IMGUI_DIR
     ${CMAKE_SOURCE_DIR}/libs/imgui

@@ -59,8 +59,6 @@ void setup(R& r, RData* data)
     data->counter = CImGui::Widgets::GetFramerateStats(1.);
     data->elist = CImGui::Widgets::GetEventHandlerList();
     data->rviewer = CImGui::Widgets::GetRendererViewer<GFX>();
-
-    //cDebug("Window manager: {0}", r.windowLibrary());
 }
 
 void loop(R& r, RData* data)
@@ -108,9 +106,19 @@ void loop(R& r, RData* data)
     r.swapBuffers();
 }
 
-void cleanup(R&, RData*)
+void cleanup(R&, RData* data)
 {
+    data->input.resize(0);
+
+    data->counter = nullptr;
+    data->elist = nullptr;
+    data->rviewer = nullptr;
+
     CImGui::Shutdown();
+
+
+    data->load_api = nullptr;
+    GFX::UnloadAPI();
 }
 
 int32 coffeeimgui_main(int32, cstring_w*)
@@ -118,8 +126,6 @@ int32 coffeeimgui_main(int32, cstring_w*)
     CResources::FileResourcePrefix("coffeeimgui/");
 
     cDebug("Hello World!");
-
-    R renderer;
 
     auto disable_imgui = [](void* u, CIEvent const& ev, c_cptr data)
     {
@@ -131,6 +137,16 @@ int32 coffeeimgui_main(int32, cstring_w*)
                 render_data->display_gui = !render_data->display_gui;
         }
     };
+
+    Vis visual = Display::GetDefaultVisual<GFX>();
+
+
+    ELD* eld_data = new ELD{MkUq<R>(),
+            MkUq<RData>(),
+            setup, loop, cleanup,
+            0, {}};
+
+    R& renderer = *eld_data->renderer.get();
 
     renderer.installEventHandler(
     {
@@ -157,26 +173,15 @@ int32 coffeeimgui_main(int32, cstring_w*)
                     "Window fullscreen trigger on F11 and Alt-Enter",
                     &renderer
                 });
-
-    Vis visual = Display::GetDefaultVisual<GFX>();
-    RData render_data;
-
     renderer.installEventHandler(
     {
                     disable_imgui,
                     "ImGui toggle switch on F9",
-                    &render_data
+                    eld_data->data.get()
                 });
 
-    ELD eld_data;
-    eld_data.setup = setup;
-    eld_data.loop = loop;
-    eld_data.cleanup = cleanup;
-    eld_data.renderer = &renderer;
-    eld_data.data = &render_data;
-
     CString err_s;
-    R::execEventLoop(eld_data, visual, err_s);
+    R::execEventLoop(*eld_data, visual, err_s);
 
     cDebug("Error: {0}", err_s);
 
