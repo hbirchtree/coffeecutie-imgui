@@ -64,5 +64,7 @@ coffee_add_application_longerer(
     )
 
 coffee_bundle_includes( ${CMAKE_SOURCE_DIR}/include )
+coffee_bundle_header ( ${CMAKE_SOURCE_DIR}/libs/imgui/imgui.h )
+coffee_bundle_header ( ${CMAKE_SOURCE_DIR}/libs/imgui/imconfig.h )
 
 End_Subproject()
