@@ -6,7 +6,7 @@ cd $env:BUILD_DIR
 $PYTHON = "C:\Python36\python.exe"
 
 function build_info(){
-    . $PYTHON $PWD\..\buildinfo.py $args
+    . $PYTHON $env:SOURCE_DIR\buildinfo.py $args
 }
 
 $LIBRARY_DIR = "$env:BUILD_DIR\libraries"
