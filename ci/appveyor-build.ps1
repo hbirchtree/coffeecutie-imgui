@@ -30,7 +30,7 @@ ForEach($dep in $env:DEPENDENCIES -split ";") {
 
                 echo "Extracting $dep from archive..."
                 Expand-Archive -Path $zipfile -DestinationPath $dest_dir -Force
-                mv -Force "$LIBRARY_DIR\out\*" "$LIBRARY_DIR\"
+                #mv -Force "$LIBRARY_DIR\out\*" "$LIBRARY_DIR\"
                 echo "Successfully extracted library $dep!"
             }
         }
