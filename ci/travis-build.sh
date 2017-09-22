@@ -1,5 +1,7 @@
 #!/bin/bash
 
+umask 000
+
 SOURCE_DIR="$PWD"
 BUILD_DIR="$SOURCE_DIR/multi_build"
 
@@ -110,6 +112,7 @@ function build_standalone()
 
     [ -z $CONFIGURATION ] && export CONFIGURATION=Debug
     [ -z $CMAKE_TARGET ] && export CMAKE_TARGET=install
+    [ ! -z $TRAVIS ] && sudo chmod -R 777 "$SOURCE_DIR" "$COFFEE_DIR" "$BUILD_DIR"
 
     make -f "$CI_DIR/$MAKEFILE" \
         -e SOURCE_DIR="$SOURCE_DIR" \
@@ -149,6 +152,8 @@ function main()
     build_standalone "$1"
 
     [ ! -z $NODEPLOY ] && exit 0
+    [ ! -z $TRAVIS ] && sudo chown -R $(whoami) ${BUILD_DIR}
+
     tar -zcvf "$LIB_ARCHIVE" -C ${BUILD_DIR} \
             --exclude=build/*/bin \
             --exclude=build/*/packaged \
