@@ -72,7 +72,7 @@ try{
     echo " * Deploying $DEPLOY_ASSET to $TARGET_TAG"
     github_api push asset $DEPLOY_TARGET $FILENAME
     echo " * Deploying $DEPLOY_ASSET_BIN to $TARGET_TAG"
-    github_api push asset $DEPLOY_TARGET_BIN $FILENAME_BIN
+    github_api push asset $DEPLOY_TARGET $FILENAME_BIN
 
     echo " * Deployment complete"
 }
