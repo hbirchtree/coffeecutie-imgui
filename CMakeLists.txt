@@ -5,11 +5,11 @@ set ( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/Modules"
 include( SubprojectFunctions )
 Init_Subproject()
 
-import_coffee_lib ( Coffee REQUIRED )
 find_package ( StandardLibs REQUIRED )
 if(COFFEE_BUILD_SDL2)
     find_package ( SDL2 REQUIRED )
 endif()
+import_coffee_lib ( Coffee REQUIRED )
 
 set ( IMGUI_DIR
     ${CMAKE_SOURCE_DIR}/libs/imgui
