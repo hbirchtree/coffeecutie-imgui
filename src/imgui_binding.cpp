@@ -22,6 +22,52 @@ using GFX = RHI::NullAPI;
 
 #define COFFEE_GLES20_MODE
 
+static const Vector<Pair<ImGuiKey_, u16>> ImKeyMap = {
+    {ImGuiKey_Tab, CK_HTab},
+    {ImGuiKey_LeftArrow, CK_Left},
+    {ImGuiKey_RightArrow, CK_Right},
+    {ImGuiKey_UpArrow, CK_Up},
+    {ImGuiKey_DownArrow, CK_Down},
+    {ImGuiKey_PageUp, CK_PgUp},
+    {ImGuiKey_PageDown, CK_PgDn},
+    {ImGuiKey_Home, CK_Home},
+    {ImGuiKey_End, CK_End},
+    {ImGuiKey_Backspace, CK_BackSpace},
+    {ImGuiKey_Delete, CK_Delete},
+    {ImGuiKey_Enter, CK_EnterNL},
+    {ImGuiKey_Escape, CK_Escape},
+    {ImGuiKey_A, CK_a},
+    {ImGuiKey_C, CK_c},
+    {ImGuiKey_V, CK_v},
+    {ImGuiKey_X, CK_x},
+    {ImGuiKey_Y, CK_y},
+    {ImGuiKey_Z, CK_z},
+};
+
+STATICINLINE ImGuiKey CfToImKey(u32 k)
+{
+    auto it = std::find_if(ImKeyMap.begin(), ImKeyMap.end(),
+                 [k](Pair<ImGuiKey_,u16> const& p)
+    {
+        return p.second == k;
+    });
+    if(it != ImKeyMap.end())
+        return it->first;
+    return 0;
+}
+
+STATICINLINE u32 ImToCfKey(ImGuiKey k)
+{
+    auto it = std::find_if(ImKeyMap.begin(), ImKeyMap.end(),
+                           [k](Pair<ImGuiKey_,u16> const& p)
+    {
+        return p.first == k;
+    });
+    if(it != ImKeyMap.end())
+        return it->second;
+    return 0;
+}
+
 // Data
 static double       g_Time = 0.0;
 //static bool         g_MousePressed[3] = { false, false, false };
@@ -373,14 +419,41 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
         auto ev = C<CIKeyEvent>(data);
         if(ev.key < 512)
         {
-            if(ev.key >= CK_a && ev.key <= CK_z)
-                io->AddInputCharacter(ev.key);
+            if(
+                    ((ev.key >= CK_a && ev.key <= CK_z)
+                     ||(ev.key >= CK_A && ev.key <= CK_Z))
+                    && (ev.mod & CIKeyEvent::RepeatedModifier
+                        || ev.mod & CIKeyEvent::PressedModifier
+                        )
+                    )
+                io->AddInputCharacter(C_CAST<ImWchar>(ev.key));
 
             io->KeysDown[ev.key] = ev.mod & CIKeyEvent::PressedModifier;
+
             io->KeyAlt = ev.mod & CIKeyEvent::LAltModifier;
             io->KeyCtrl = ev.mod & CIKeyEvent::LCtrlModifier;
             io->KeyShift = ev.mod & CIKeyEvent::LShiftModifier;
             io->KeySuper = ev.mod & CIKeyEvent::SuperModifier;
+
+            switch(ev.key)
+            {
+            case CK_LShift:
+            case CK_RShift:
+                io->KeyShift = true;
+                break;
+            case CK_LCtrl:
+            case CK_RCtrl:
+                io->KeyCtrl = true;
+                break;
+            case CK_AltGr:
+            case CK_LAlt:
+                io->KeyAlt = true;
+                break;
+            case CK_LSuper:
+            case CK_RSuper:
+                io->KeyShift = true;
+                break;
+            }
         }
         break;
     }
@@ -399,25 +472,11 @@ bool Coffee::CImGui::Init(WindowManagerClient& window, EventApplication &event)
                     "ImGui input handler",
                     &io
                 });
-    io.KeyMap[ImGuiKey_Tab] = CK_HTab;
-    io.KeyMap[ImGuiKey_LeftArrow] = CK_Left;
-    io.KeyMap[ImGuiKey_RightArrow] = CK_Right;
-    io.KeyMap[ImGuiKey_UpArrow] = CK_Up;
-    io.KeyMap[ImGuiKey_DownArrow] = CK_Down;
-    io.KeyMap[ImGuiKey_PageUp] = CK_PgUp;
-    io.KeyMap[ImGuiKey_PageDown] = CK_PgDn;
-    io.KeyMap[ImGuiKey_Home] = CK_Home;
-    io.KeyMap[ImGuiKey_End] = CK_End;
-    io.KeyMap[ImGuiKey_Delete] = CK_Delete;
-    io.KeyMap[ImGuiKey_Backspace] = CK_BackSpace;
-    io.KeyMap[ImGuiKey_Enter] = CK_EnterNL;
-    io.KeyMap[ImGuiKey_Escape] = CK_Escape;
-    io.KeyMap[ImGuiKey_A] = CK_a;
-    io.KeyMap[ImGuiKey_C] = CK_c;
-    io.KeyMap[ImGuiKey_V] = CK_v;
-    io.KeyMap[ImGuiKey_X] = CK_x;
-    io.KeyMap[ImGuiKey_Y] = CK_y;
-    io.KeyMap[ImGuiKey_Z] = CK_z;
+
+    for(auto const& p : ImKeyMap)
+    {
+        io.KeyMap[p.first] = p.second;
+    }
 
     io.RenderDrawListsFn = ImGui_ImplSdlGL3_RenderDrawLists;   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
     io.SetClipboardTextFn = ImGui_ImplSdlGL3_SetClipboardText;
@@ -429,6 +488,8 @@ bool Coffee::CImGui::Init(WindowManagerClient& window, EventApplication &event)
 
 void Coffee::CImGui::Shutdown()
 {
+    im_data = nullptr;
+
     InvalidateDeviceObjects();
     ImGui::Shutdown();
 }

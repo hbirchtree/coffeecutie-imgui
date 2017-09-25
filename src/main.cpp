@@ -68,6 +68,8 @@ void loop(R& r, RData* data)
     bool enable_gui_now = data->display_gui;
     bool frame_prepared = false;
 
+    r.pollEvents();
+
     if(enable_gui_now)
     {
         CImGui::NewFrame(r, r);
@@ -83,12 +85,11 @@ void loop(R& r, RData* data)
             ImGui::ProgressBar(CMath::fmod(r.contextTime()+i, 1.0), {-1, 1}, "HAHA");
 
         ImGuiInputTextFlags text_flags = 0;
-        ImGui::BeginChild("Test child", {100,100}, true, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::BeginChild("Test child", {300,100}, true, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Checkbox("Test", &data->marked);
         if(!data->marked)
             text_flags = ImGuiInputTextFlags_ReadOnly;
-        ImGui::InputText("Text", &data->input[0], data->input.size(),
-                text_flags, nullptr, nullptr);
+        ImGui::InputText("Text", &data->input[0], data->input.size());
 
         ImGui::EndChild();
 
@@ -98,7 +99,6 @@ void loop(R& r, RData* data)
         frame_prepared = true;
     }
 
-    r.pollEvents();
 
     if(enable_gui_now && frame_prepared)
         CImGui::EndFrame();
