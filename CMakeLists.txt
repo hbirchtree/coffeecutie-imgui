@@ -24,8 +24,6 @@ set ( SRCS
 set ( LIBS
     CoffeeCore; CoffeeRenderer_Default;
     CoffeeGLeamRHI;
-    ${STANDARDLIBS_LIBRARIES};
-    ${SDL2_LIBRARY};${SDL2_LIBRARIES}
     )
 
 set ( PERMS
