@@ -20,8 +20,6 @@ using GFX = RHI::GLEAM::GLEAM_API;
 using GFX = RHI::NullAPI;
 #endif
 
-#define COFFEE_GLES20_MODE
-
 static const Vector<Pair<ImGuiKey_, u16>> ImKeyMap = {
     {ImGuiKey_Tab, CK_HTab},
     {ImGuiKey_LeftArrow, CK_Left},
@@ -234,54 +232,43 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
 
 bool Coffee::CImGui::CreateDeviceObjects()
 {
-	constexpr cstring vertex_shader =
-#if defined(COFFEE_GLEAM_DESKTOP) && 0
-		"#version 330\n"
-#elif defined(COFFEE_GLES20_MODE)
-		"#define in attribute\n"
-		"#define out varying\n"
-		"precision lowp float;\n"
-#else
-        "#version 300 es\n"
-        "precision lowp float;\n"
-#endif
-        "uniform mat4 ProjMtx;\n"
-        "in vec2 Position;\n"
-        "in vec2 UV;\n"
-        "in vec4 Color;\n"
-        "out vec2 Frag_UV;\n"
-        "out vec4 Frag_Color;\n"
-        "void main()\n"
-        "{\n"
-        "	Frag_UV = UV;\n"
-        "	Frag_Color = Color;\n"
-        "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-        "}\n"
-		;
+    constexpr cstring vertex_shader =
+        #if defined(COFFEE_GLEAM_DESKTOP)
+            "#version 330\n"
+        #else
+            "#version 300 es\n"
+        #endif
+            "uniform mat4 ProjMtx;\n"
+            "in vec2 Position;\n"
+            "in vec2 UV;\n"
+            "in vec4 Color;\n"
+            "out vec2 Frag_UV;\n"
+            "out vec4 Frag_Color;\n"
+            "void main()\n"
+            "{\n"
+            "	Frag_UV = UV;\n"
+            "	Frag_Color = Color;\n"
+            "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+            "}\n"
+            ;
 
-	constexpr cstring fragment_shader =
-#if defined(COFFEE_GLEAM_DESKTOP) && 0
-		"#version 330\n"
-#elif defined(COFFEE_GLES20_MODE)
-		"#define in varying\n"
-		"#define texture texture2D\n"
-		"#define Out_Color gl_FragColor\n"
-		"precision lowp float;\n"
-#else
-		"#version 300 es\n"
-		"precision lowp float;\n"
-#endif
-		"uniform sampler2D Texture;\n"
-		"in vec2 Frag_UV;\n"
-		"in vec4 Frag_Color;\n"
-#if !defined(COFFEE_GLES20_MODE)
-		"out vec4 Out_Color;\n"
-#endif
-		"void main()\n"
-		"{\n"
-		"	Out_Color = Frag_Color * texture( Texture, Frag_UV.st);\n"
-		"}\n"
-		;
+    constexpr cstring fragment_shader =
+        #if defined(COFFEE_GLEAM_DESKTOP)
+            "#version 330\n"
+        #else
+            "#version 300 es\n"
+        #endif
+            "uniform sampler2D Texture;\n"
+            "in vec2 Frag_UV;\n"
+            "in vec4 Frag_Color;\n"
+        #if !defined(COFFEE_GLES20_MODE)
+            "out vec4 OutColor;\n"
+        #endif
+            "void main()\n"
+            "{\n"
+            "	OutColor = Frag_Color * texture( Texture, Frag_UV.st);\n"
+            "}\n"
+            ;
 
     if(im_data)
         return true;
