@@ -9,7 +9,7 @@ case "${TRAVIS_OS_NAME}" in
 ;;
 "osx")
     brew install python3
-    brew install sdl2 cmake ninja openssl swig@3.04 jq
+    brew install sdl2 cmake ninja openssl
     pip3 install pyyaml requests
     exit 0
 ;;
