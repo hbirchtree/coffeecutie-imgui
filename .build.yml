@@ -52,3 +52,10 @@ script_location: ci
 secrets:
   appveyor: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
 template_location: cmake/Templates
+version:
+  hotfix: 5
+  major: 0
+  minor: 9
+  patch: 3
+  release: 9
+versionprefix: v
