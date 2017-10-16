@@ -5,3 +5,5 @@ build
 build_*
 __pycache__
 .local.yml
+*.pyc
+multi_build
