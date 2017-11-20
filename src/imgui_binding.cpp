@@ -182,15 +182,20 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
                 cmd->UserCallback(cmd_list, cmd);
             else
             {
-                view_.m_scissor[0] = {(int)cmd->ClipRect.x,
-                                      (int)(fb_height - cmd->ClipRect.w),
-                                      (int)(cmd->ClipRect.z - cmd->ClipRect.x),
-                                      (int)(cmd->ClipRect.w - cmd->ClipRect.y)
-                                     };
+                view_.m_scissor[0] =
+                {
+                    (int)cmd->ClipRect.x,
+                    (int)(fb_height - cmd->ClipRect.w),
+                    (int)(cmd->ClipRect.z - cmd->ClipRect.x),
+                    (int)(cmd->ClipRect.w - cmd->ClipRect.y)
+                };
                 GFX::SetViewportState(view_);
-                handle.glTexHandle() = ExtractIntegerPtr<u32>(cmd->TextureId);
-                /* TODO: Improve this by using batching structure, D_DATA arrays */
-                GFX::Draw(im_data->pipeline, pipstate, im_data->attributes, dc, dd);
+                handle.glTexHandle() =
+                        ExtractIntegerPtr<u32>(cmd->TextureId);
+                /* TODO: Improve this by using batching structure,
+                 *  D_DATA arrays */
+                GFX::Draw(im_data->pipeline, pipstate,
+                          im_data->attributes, dc, dd);
             }
             dd.m_eoff += cmd->ElemCount;
         }
@@ -296,9 +301,12 @@ bool Coffee::CImGui::CreateDeviceObjects()
             cDebug("Failed to compile fragment shader, using: \n{0}",
                    fragment_shader);
 
-        if(!pip.attach(vert, ShaderStage::Vertex))
+        auto& vert_owned = pip.storeShader(std::move(vert));
+        auto& frag_owned = pip.storeShader(std::move(frag));
+
+        if(!pip.attach(vert_owned, ShaderStage::Vertex))
             cDebug("Failed to attach vertex shader");
-        if(!pip.attach(frag, ShaderStage::Fragment))
+        if(!pip.attach(frag_owned, ShaderStage::Fragment))
             cDebug("Failed to attach fragment shader");
 
         if(!pip.assemble())

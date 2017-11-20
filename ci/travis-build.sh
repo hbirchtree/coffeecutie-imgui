@@ -17,7 +17,7 @@ export MANUAL_DEPLOY
 export MANUAL_CONTEXT
 
 QTHUB_DOCKER="hbirch/coffeecutie:qthub-client"
-MAKEFILE="Makefile.standalone"
+MAKEFILE="Makefile.linux"
 
 INFOPY="$SOURCE_DIR/buildinfo.py"
 
@@ -114,13 +114,12 @@ function build_standalone()
     [ -z $CMAKE_TARGET ] && export CMAKE_TARGET=install
     [ ! -z $TRAVIS ] && sudo chmod -R 777 "$SOURCE_DIR" "$COFFEE_DIR" "$BUILD_DIR"
 
-    [ $BUILDVARIANT = "maemo.armel" ] && export CONFIGURATION=Release
-
     make -f "$CI_DIR/$MAKEFILE" \
         -e SOURCE_DIR="$SOURCE_DIR" \
         -e BUILD_TYPE="$CONFIGURATION" \
         -e COFFEE_DIR="$COFFEE_DIR" $@ \
-        -e CMAKE_TARGET="$CMAKE_TARGET"
+        -e CMAKE_TARGET="$CMAKE_TARGET" \
+        -e GENERATE_PROGRAMS="ON"
 
     # We want to exit if the Make process fails horribly
     # Should also signify to Travis/CI that something went wrong

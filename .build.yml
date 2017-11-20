@@ -11,24 +11,15 @@ branches:
   name: testing
 coverage: false
 dependencies:
-  hbirchtree/coffeecutie: automated-release-4.2.7.0.0
+  hbirchtree/coffeecutie: automated-release-4.2.7.0.1-49-g185aff9
 display_name: Coffee Imgui
-exports:
-  COFFEE_IMGUI_INCLUDE_DIR:
-    file: imgui_binding.h
-    path: coffee/imgui
-    required: true
-    type: header
-  COFFEE_IMGUI_LIBRARY:
-    file: CoffeeImGui
-    required: true
-    type: library
 makefile_location: ci
 name: CoffeeImGui
 platforms:
   android:
-  - armv7a
-  - armv8a
+  - armv7a.gingerbread.gles2
+  - armv7a.nougat.gles2
+  - armv8a.nougat.gles3
   emscripten:
   - asmjs
   - wasm
