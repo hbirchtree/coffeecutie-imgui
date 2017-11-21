@@ -10,6 +10,7 @@
 #include <coffee/imgui/imgui_binding.h>
 #include <coffee/graphics/apis/CGLeamRHI>
 #include <coffee/core/CDebug>
+#include <coffee/core/platform_data.h>
 
 using namespace Coffee;
 using namespace Display;
@@ -499,7 +500,11 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
 
     // Setup display size (every frame to accommodate for window resizing)
     auto s = window.windowSize();
-    io.DisplaySize = ImVec2((float)s.w, (float)s.h);
+
+    io.DisplaySize = ImVec2(
+                s.w,
+                s.h
+                );
     io.DisplayFramebufferScale = ImVec2(1, 1);
 
     // Setup time step
