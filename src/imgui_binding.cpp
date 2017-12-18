@@ -501,11 +501,13 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
     // Setup display size (every frame to accommodate for window resizing)
     auto s = window.windowSize();
 
+    scalar uiScaling = PlatformData::DeviceDPI();
+
     io.DisplaySize = ImVec2(
-                s.w,
-                s.h
+                s.w / uiScaling,
+                s.h / uiScaling
                 );
-    io.DisplayFramebufferScale = ImVec2(1, 1);
+    io.DisplayFramebufferScale = ImVec2(uiScaling, uiScaling);
 
     // Setup time step
     auto time = event.contextTime();
@@ -514,7 +516,7 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
 
     // Setup inputs
     auto pos = event.mousePosition();
-    io.MousePos = ImVec2(pos.x, pos.y);
+    io.MousePos = ImVec2(pos.x / uiScaling, pos.y / uiScaling);
 
     io.MouseWheel = g_MouseWheel;
     g_MouseWheel = 0.0f;

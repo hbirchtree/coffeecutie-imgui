@@ -142,7 +142,7 @@ int32 coffeeimgui_main(int32, cstring_w*)
 
     visual.gl.flags |= Display::GLProperties::GLDebug;
 
-    ELD* eld_data = new ELD{MkUq<R>(),
+    ELD* eld_data = new ELD{Display::CreateRendererUq(),
             MkUq<RData>(),
             setup, loop, cleanup,
             0, {}};

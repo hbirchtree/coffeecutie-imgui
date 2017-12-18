@@ -82,7 +82,6 @@ def parse_linux_targets():
     for f in ['%s/tools/makers/targets.yml' % dirname(__file__), '%s/ci/targets.yml' % (dirname(__file__))]:
         try:
             src = parse_yaml(f)
-            print('Got %s' % f)
 
             _TARGET_NAMES['linux'] = {}
 
