@@ -46,6 +46,11 @@ inline FrameCounter GetFramerateStats(bigscalar interval)
 
 #define FRAMERATE_FRAC(ms, fps) (ms < (1. / fps)) ? 1.0 : (1. / fps) / ms
 
+        auto& io = ImGui::GetIO();
+
+        ImGui::SetNextWindowSize({150, 100});
+        ImGui::SetNextWindowPos({4, io.DisplaySize.y - 100 - 4});
+
         ImGui::Begin("Framerate goals");
         ImGui::ProgressBar(FRAMERATE_FRAC(prev_ms, 30.), {-1, 14}, "30");
         ImGui::ProgressBar(FRAMERATE_FRAC(prev_ms, 60.), {-1, 14}, "60");

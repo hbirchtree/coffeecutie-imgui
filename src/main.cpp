@@ -68,15 +68,17 @@ void loop(R& r, RData* data)
     bool enable_gui_now = data->display_gui;
     bool frame_prepared = false;
 
+    if(enable_gui_now)
+        CImGui::NewFrame(r, r);
+
     r.pollEvents();
 
     if(enable_gui_now)
     {
-        CImGui::NewFrame(r, r);
 
         data->rviewer(GFX::GraphicsContext(), GFX::GraphicsDevice());
 
-        ImGui::Begin("Hello!", &data->open, 0);
+        ImGui::Begin("Hello!", &data->open);
 
         data->counter(r);
 

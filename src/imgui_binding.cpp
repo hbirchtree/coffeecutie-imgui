@@ -399,6 +399,37 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
 
     switch(ev.type)
     {
+    case CIEvent::TouchPan:
+    {
+        CIMTouchMotionEvent const& pan = C<CIMTouchMotionEvent>(data);
+
+        io->MousePos = {
+            (pan.origin.x + pan.translation.x)
+            / io->DisplayFramebufferScale.x,
+            (pan.origin.y + pan.translation.y)
+            / io->DisplayFramebufferScale.y};
+
+        auto btn = CIMouseButtonEvent::LeftButton;
+
+        io->MouseDown[btn - 1] = true;
+        io->MouseClickedPos[btn - 1] = io->MousePos;
+
+        break;
+    }
+    case CIEvent::TouchTap:
+    {
+        CITouchTapEvent const& tap = C<CITouchTapEvent>(data);
+
+        io->MouseDown[CIMouseButtonEvent::LeftButton - 1]
+                = tap.pressed;
+        io->MouseClickedPos[CIMouseButtonEvent::LeftButton - 1]
+                = {
+            tap.pos.x / io->DisplayFramebufferScale.x,
+            tap.pos.y / io->DisplayFramebufferScale.y
+                  };
+
+        break;
+    }
     case CIEvent::MouseButton:
     {
         auto ev = C<CIMouseButtonEvent>(data);
@@ -408,6 +439,15 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
             io->MouseDown[ev.btn - 1] = flag;
             io->MouseClickedPos[ev.btn - 1] = {ev.pos.x, ev.pos.y};
         }
+        break;
+    }
+    case CIEvent::MouseMove:
+    {
+        auto ev = C<CIMouseMoveEvent>(data);
+        io->MousePos = {
+            (ev.origin.x + ev.delta.x) / io->DisplayFramebufferScale.x,
+            (ev.origin.y + ev.delta.y) / io->DisplayFramebufferScale.y};
+
         break;
     }
     case CIEvent::Keyboard:
@@ -511,12 +551,17 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
 
     // Setup time step
     auto time = event.contextTime();
-    io.DeltaTime = g_Time > 0.0 ? (float)(time - g_Time) : (float)(1.0f / 60.0f);
+    io.DeltaTime = g_Time > 0.0 ? (float)(time - g_Time)
+                                : (float)(1.0f / 60.0f);
     g_Time = time;
 
     // Setup inputs
+#if !defined(COFFEE_ANDROID) && !defined(COFFEE_APPLE_MOBILE)
     auto pos = event.mousePosition();
     io.MousePos = ImVec2(pos.x / uiScaling, pos.y / uiScaling);
+#else
+    io.MouseDown[CIMouseButtonEvent::LeftButton - 1] = false;
+#endif
 
     io.MouseWheel = g_MouseWheel;
     g_MouseWheel = 0.0f;
@@ -527,5 +572,7 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
 
 void CImGui::EndFrame()
 {
+    ImGuiIO& io = ImGui::GetIO();
+
     ImGui::Render();
 }

@@ -18,6 +18,10 @@ inline RendererViewer GetRendererViewer()
 {
     return [](typename GFX::G_CTXT const& c, typename GFX::G_DEV const& d)
     {
+        auto& io = ImGui::GetIO();
+
+        ImGui::SetNextWindowPos({4, 24});
+
         ImGui::Begin("Renderer info");
 
         CString api_name;
