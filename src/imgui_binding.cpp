@@ -112,6 +112,8 @@ static UqPtr<ImGuiData> im_data = nullptr;
 static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+    GFX::DBG::SCOPE a("ImGui render");
+
     ImGuiIO& io = ImGui::GetIO();
     int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
     int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
@@ -155,17 +157,16 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 
     GFX::PSTATE pipstate =
     {
-        {ShaderStage::Vertex, v_state},
-        {ShaderStage::Fragment, f_state}
+        {ShaderStage::Vertex, &v_state},
+        {ShaderStage::Fragment, &f_state}
     };
 
     glBlendEquation(GL_FUNC_ADD);
 
-    GFX::D_CALL dc;
-    dc.m_idxd = true;
-    dc.m_inst = false;
+    GFX::D_CALL dc(true, false);
     GFX::D_DATA dd;
-    dd.m_eltype = (sizeof(ImDrawIdx) == 2) ? TypeEnum::UShort : TypeEnum::UInt;
+    dd.m_eltype = (sizeof(ImDrawIdx) == 2)
+            ? TypeEnum::UShort : TypeEnum::UInt;
 
     for(int n=0;n<draw_data->CmdListsCount;n++)
     {
@@ -218,6 +219,8 @@ static void ImGui_ImplSdlGL3_SetClipboardText(void*, const char* text)
 
 void ImGui_ImplSdlGL3_CreateFontsTexture()
 {
+    GFX::DBG::SCOPE a("ImGui create font texture");
+
     // Build texture atlas
     ImGuiIO& io = ImGui::GetIO();
     unsigned char* pixels;
@@ -279,6 +282,8 @@ bool Coffee::CImGui::CreateDeviceObjects()
     if(im_data)
         return true;
 
+    GFX::DBG::SCOPE a("ImGui creation");
+
     im_data = UqPtr<ImGuiData>(new ImGuiData);
 
     u32 attr_idx[3] = {};
@@ -314,9 +319,6 @@ bool Coffee::CImGui::CreateDeviceObjects()
             cDebug("Failed to assemble shader pipeline");
 
         cDebug("Shader pipeline is assembled");
-
-        fprintf(stderr, "Shaders in use: \nVertex:\n%s\n\nFragment:\n%s",
-               vertex_shader, fragment_shader);
 
 //        vert.dealloc();
 //        frag.dealloc();
@@ -381,6 +383,7 @@ void    Coffee::CImGui::InvalidateDeviceObjects()
 {
     if(im_data)
     {
+        GFX::DBG::SCOPE a("ImGui invalidation");
         im_data->vertices.dealloc();
         im_data->elements.dealloc();
         im_data->attributes.dealloc();
@@ -498,7 +501,8 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
     }
 }
 
-bool Coffee::CImGui::Init(WindowManagerClient& window, EventApplication &event)
+bool Coffee::CImGui::Init(
+        WindowManagerClient& window, EventApplication &event)
 {
     ImGuiIO& io = ImGui::GetIO();
 
