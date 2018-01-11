@@ -63,7 +63,7 @@ void setup(R& r, RData* data)
 
 void loop(R& r, RData* data)
 {
-    GFX::DefaultFramebuffer().clear(0, {0.3f, 0.1f, 0.1f, 1.0});
+    GFX::DefaultFramebuffer().clear(0, {0.2f, 0.2f, 0.3f, 1.0});
 
     bool enable_gui_now = data->display_gui;
     bool frame_prepared = false;
@@ -96,6 +96,10 @@ void loop(R& r, RData* data)
         ImGui::EndChild();
 
         ImGui::End();
+        
+#if !defined(NDEBUG)
+        ImGui::ShowTestWindow();
+#endif
 
         data->elist(r);
         frame_prepared = true;

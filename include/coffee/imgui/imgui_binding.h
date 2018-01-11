@@ -26,14 +26,14 @@ namespace Widgets{
 
 using FrameCounter = Function<void(EventApplication const&)>;
 using EventHandlerList = Function<void(EventApplication&)>;
-using MainMenuWidget = Function<void(bigscalar, u32)>;
+using MainMenuWidget = Function<void(bigscalar, u32, scalar, scalar)>;
 
 template<size_t values>
 inline MainMenuWidget GetFrametimeGraph(
         bigscalar interval
         )
 {
-    return [=](bigscalar ms, u32 frames)
+    return [=](bigscalar ms, u32 frames, scalar width, scalar height = 24)
     {
         static Array<scalar, values> m_values = {};
         static szptr m_valuePtr = 0;
@@ -45,11 +45,11 @@ inline MainMenuWidget GetFrametimeGraph(
         for(scalar v : m_values)
             mx = CMath::max(v, mx);
 
-        ImGui::PlotLines("",
+        ImGui::PlotHistogram("",
                          m_values.data(),
                          m_values.size(),
                          0, "",
-                         0.f, mx, {1280, 32});
+                         0.f, mx, {width, height});
 
         m_valuePtr = (++m_valuePtr) % m_values.size();
     };
@@ -74,37 +74,26 @@ inline FrameCounter GetFramerateStats(
         prev_time_always = event.contextTime();
 
         ImGui::BeginMainMenuBar();
+        ImGui::Columns(3, "Menu");
         ImGui::Text("frametime=%.1f ms, framerate=%u FPS",
                     prev_ms * 1000., frame_count_display);
+        ImGui::NextColumn();
+        
+        ImGui::NextColumn();
+        GetFrametimeGraph<50>(interval)
+                    (prev_ms * 1000., 0,
+                     ImGui::GetWindowSize().x / 3.f,
+                     20.f);
+        ImGui::NextColumn();
         ImGui::EndMainMenuBar();
 
         auto& io = ImGui::GetIO();
-
-        scalar graph_height = 50;
-        {
-                    ImGui::SetNextWindowSize({io.DisplaySize.x,
-                                              graph_height});
-            ImGui::SetNextWindowPos({0,
-                                     io.DisplaySize.y - graph_height});
-            ImGui::Begin(
-                        "Frametime graph", nullptr,
-                        ImGuiWindowFlags_NoInputs|
-                        ImGuiWindowFlags_NoResize|
-                        ImGuiWindowFlags_NoTitleBar|
-                        ImGuiWindowFlags_NoMove);
-
-            GetFrametimeGraph<50>(interval)
-                    (prev_ms * 1000., 0);
-
-            ImGui::End();
-        }
 
 #define FRAMERATE_FRAC(ms, fps) (ms < (1. / fps)) ? 1.0 : (1. / fps) / ms
 
         ImGui::SetNextWindowSize({150, 100});
         ImGui::SetNextWindowPos({4,
-                                 io.DisplaySize.y - 100 - 4
-                                 - graph_height});
+                                 io.DisplaySize.y - 100 - 4});
 
         ImGui::Begin("Framerate goals");
         ImGui::ProgressBar(FRAMERATE_FRAC(prev_ms, 30.), {-1, 14}, "30");
