@@ -74,15 +74,38 @@ inline FrameCounter GetFramerateStats(
         prev_time_always = event.contextTime();
 
         ImGui::BeginMainMenuBar();
-        ImGui::Columns(3, "Menu");
-        ImGui::Text("frametime=%.1f ms, framerate=%u FPS",
-                    prev_ms * 1000., frame_count_display);
+        ImGui::Columns(4, "Menu");
+        ImGui::Text("ft=%.1f ms,"
+                    " fps=%u"
+                    " SF=%ldMB",
+                    prev_ms * 1000.,
+                    frame_count_display,
+
+                    ProcessProperty::Mem(0) / 1_kB
+                    );
         ImGui::NextColumn();
-        
+        ImGui::Text("GPU=%.1fC" /*"|%.1fC"*/
+                    "/%lluMB/%lluMB",
+
+                    0.0, /*0.0,*/
+                    0ULL, 0ULL
+                    );
+        ImGui::NextColumn();
+        auto temp = PowerInfo::CpuTemperature();
+        bigscalar mused = SysInfo::MemTotal() - SysInfo::MemAvailable();
+        bigscalar mtotal = SysInfo::MemTotal();
+        ImGui::Text("CPU=%.1fC" /*"|%.1fC"*/
+                    "/M=%.1fGB/%.1fGB",
+                    temp.current,
+//                    temp.trip_point,
+
+                    mused / 1_GB,
+                    mtotal / 1_GB
+                    );
         ImGui::NextColumn();
         GetFrametimeGraph<50>(interval)
                     (prev_ms * 1000., 0,
-                     ImGui::GetWindowSize().x / 3.f,
+                     ImGui::GetWindowSize().x / 4.f,
                      20.f);
         ImGui::NextColumn();
         ImGui::EndMainMenuBar();
