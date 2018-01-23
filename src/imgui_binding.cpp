@@ -231,7 +231,9 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
     auto& sm = im_data->fonts_sampler;
 
     s.allocate({width, height}, PixCmp::RGBA);
-    s.upload(BitFmt::UByte, PixCmp::RGBA, {width, height}, pixels);
+    s.upload(BitFmt::UByte, PixCmp::RGBA, {width, height},
+             Bytes(pixels, GetPixSize(BitFmt::UByte, PixCmp::RGBA,
+                                      width * height)));
 
     sm.alloc();
     sm.setFiltering(Filtering::Linear, Filtering::Linear);
