@@ -17,7 +17,7 @@ makefile_location: ci
 name: CoffeeImGui
 platforms:
   android:
-  - armv7a.gingerbread.gles2
+  - armv7a.kitkat.gles2
   - armv7a.nougat.gles2
   - armv8a.nougat.gles3
   emscripten:
