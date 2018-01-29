@@ -319,7 +319,7 @@ templates:
     .*(mips64).*:
       =android.abi: mips64
     # Specifying native API level
-    .*(jelly||kitkat).*:
+    .*(jelly|kitkat).*:
       =android.api: 19
     .*(lollipop|marshmallow).*:
       =android.api: 21
@@ -345,6 +345,7 @@ templates:
       - -DCOFFEE_BUILD_ASSIMP=ON
       - -DCOFFEE_TESTS=OFF
       - -DCOFFEE_BUILD_SDL2=OFF
+      - -DGENERATE_TESTS=OFF
     =target: multi.twostage
     =cmake-target:
       - install
