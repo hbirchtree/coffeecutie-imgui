@@ -461,8 +461,9 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
         if(ev.key < 512)
         {
             if(
-                    ((ev.key >= CK_a && ev.key <= CK_z)
-                     ||(ev.key >= CK_A && ev.key <= CK_Z))
+                    ((  ev.key >= CK_a && ev.key <= CK_z)
+                     ||(ev.key >= CK_A && ev.key <= CK_Z)
+                     ||(ev.key >= CK_0 && ev.key <= CK_9))
                     && (ev.mod & CIKeyEvent::RepeatedModifier
                         || ev.mod & CIKeyEvent::PressedModifier
                         )
