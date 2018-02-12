@@ -32,6 +32,9 @@ environment:
   matrix:
   - BUILDVARIANT: uwp.amd64
   - BUILDVARIANT: win32.amd64
+image:
+- Visual Studio 2015
+- Visual Studio 2017
 install:
 - ps: ci\appveyor-deps.ps1
 matrix:
@@ -40,6 +43,11 @@ matrix:
   - BUILDVARIANT: coverage
   - BUILDVARIANT: uwp.amd64
   - BUILDVARIANT: uwp.arm
+  exclude:
+  - BUILDVARIANT: uwp.amd64
+    image: Visual Studio 2015
+  - BUILDVARIANT: win32.amd64
+    image: Visual Studio 2017
 platform: x64
 skip_tags: true
 version: '{build}'
