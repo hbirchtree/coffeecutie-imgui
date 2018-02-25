@@ -93,7 +93,7 @@ if(ANDROID)
     if(COFFEE_BUILD_SDL2)
         list ( APPEND CORE_EXTRA_LIBRARIES
             SDL2
-            ${SDL2_LIBRARIES}
+#            ${SDL2_LIBRARIES}
             )
     endif()
 
@@ -147,6 +147,10 @@ if(WIN32)
             OneCore
             )
     endif()
+
+    list ( APPEND CORE_EXTRA_LIBRARIES
+        Cabinet
+        )
 
     if(MINGW64)
         list ( APPEND CORE_EXTRA_LIBRARIES
