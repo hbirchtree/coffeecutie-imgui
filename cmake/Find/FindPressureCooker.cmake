@@ -19,16 +19,54 @@ find_program ( PRESSURE_COOKER_BIN
     )
 
 if(PRESSURE_COOKER_BIN AND PRESSURE_COOKER_LIB_DIR)
-    macro ( PACKAGE_DIRECTORY TARGET VFS_SOURCE VFS_TARGET EXTENSIONS )
+    macro ( PACKAGE_DIRECTORY TARGET VFS_SOURCE VFS_TARGET )
+
+        set ( PACKAGE_DIRECTORY_IGNORE_TYPES "blend,blend1" )
+        set ( PACKAGE_DIRECTORY_COMPRESS_TYPES "fbx,blend,blend1" )
+
+        cmake_parse_arguments ( PACKAGE_DIRECTORY
+            ""
+            "EXTENSIONS;IGNORE_TYPES;BASE_DIRS;COMPRESS_TYPES"
+            ""
+            ${ARGN}
+            )
+
+        get_filename_component ( OUTPUT_DIR "${VFS_TARGET}" DIRECTORY )
+
+        set ( PACKAGING_ARGS "" )
+
+        if(DEFINED PACKAGE_DIRECTORY_EXTENSIONS)
+            set ( PACKAGING_ARGS
+                ${PACKAGING_ARGS} -e ${PACKAGE_DIRECTORY_EXTENSIONS} )
+        endif()
+
+        if(DEFINED PACKAGE_DIRECTORY_IGNORE_TYPES)
+            set ( PACKAGING_ARGS
+                ${PACKAGING_ARGS} -i ${PACKAGE_DIRECTORY_IGNORE_TYPES} )
+        endif()
+
+        if(DEFINED PACKAGE_DIRECTORY_COMPRESS_TYPES)
+            set ( PACKAGING_ARGS
+                ${PACKAGING_ARGS} -c ${PACKAGE_DIRECTORY_COMPRESS_TYPES} )
+        endif()
+
+        if(DEFINED PACKAGE_DIRECTORY_BASE_DIRS)
+            set ( PACKAGING_ARGS
+                ${PACKAGING_ARGS} -b ${PACKAGE_DIRECTORY_BASE_DIRS} )
+        endif()
+
         add_custom_command ( TARGET ${TARGET}
-            POST_BUILD
+            PRE_BUILD
+
+            COMMAND
+            ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
 
             COMMAND
             ${CMAKE_COMMAND} -E env
             LD_LIBRARY_PATH=${PRESSURE_COOKER_LIB_DIR}
             DYLD_LIBRARY_PATH=${PRESSURE_COOKER_LIB_DIR}
             ${PRESSURE_COOKER_BIN}
-                -e ${EXTENSIONS}
+                ${PACKAGING_ARGS}
                 ${VFS_SOURCE}
                 ${VFS_TARGET}
             )

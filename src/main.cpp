@@ -12,6 +12,8 @@
 #include <coffee/imgui/imgui_binding.h>
 #include <coffee/imgui/graphics_widgets.h>
 
+#include <coffee/core/coffee.h>
+
 using namespace Coffee;
 
 #if defined(COFFEE_IMGUI_USE_GLEAM)
@@ -130,6 +132,7 @@ void cleanup(R&, RData* data)
 int32 coffeeimgui_main(int32, cstring_w*)
 {
     CResources::FileResourcePrefix("coffeeimgui/");
+    ApplicationData();
 
     cDebug("Hello World!");
 
