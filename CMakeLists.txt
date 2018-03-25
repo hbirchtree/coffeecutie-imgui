@@ -58,13 +58,14 @@ target_include_directories ( CoffeeImGui
     $<INSTALL_INTERFACE:include/>
     )
 
-coffee_add_application_longerer(
-    CoffeeImGuiTest
-    "Coffee ImGui Test" "Coffee" "1"
-    "???" "???"
-    "src/main.cpp" "CoffeeImGui"
-    "" "" ""
-    "${PERMS}" ""
+coffee_application (
+    TARGET CoffeeImGuiTest
+    TITLE "Coffee ImGui Test"
+    COMPANY "Coffee"
+    VERSIONC_DE "1"
+    SOURCES src/main.cpp
+    LIBRARIES CoffeeImGui
+    PERMISSIONS ${PERMS}
     )
 
 coffee_bundle_includes( ${CMAKE_SOURCE_DIR}/include )
