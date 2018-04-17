@@ -11,7 +11,7 @@ namespace CImGui{
 
 using namespace Display;
 
-IMGUI_API bool        Init(WindowManagerClient& window,
+IMGUI_API bool        Init(WindowManagerClient&,
                            EventApplication& event);
 IMGUI_API void        Shutdown();
 IMGUI_API void        NewFrame(WindowManagerClient& window,

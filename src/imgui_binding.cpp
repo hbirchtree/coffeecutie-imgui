@@ -12,6 +12,8 @@
 #include <coffee/core/CDebug>
 #include <coffee/core/platform_data.h>
 
+#define IM_API "ImGui::"
+
 using namespace Coffee;
 using namespace Display;
 
@@ -43,7 +45,7 @@ static const Vector<Pair<ImGuiKey_, u16>> ImKeyMap = {
     {ImGuiKey_Z, CK_z},
 };
 
-STATICINLINE ImGuiKey CfToImKey(u32 k)
+STATICINLINE C_MAYBE_UNUSED ImGuiKey CfToImKey(u32 k)
 {
     auto it = std::find_if(ImKeyMap.begin(), ImKeyMap.end(),
                  [k](Pair<ImGuiKey_,u16> const& p)
@@ -55,7 +57,7 @@ STATICINLINE ImGuiKey CfToImKey(u32 k)
     return 0;
 }
 
-STATICINLINE u32 ImToCfKey(ImGuiKey k)
+STATICINLINE C_MAYBE_UNUSED u32 ImToCfKey(ImGuiKey k)
 {
     auto it = std::find_if(ImKeyMap.begin(), ImKeyMap.end(),
                            [k](Pair<ImGuiKey_,u16> const& p)
@@ -112,7 +114,8 @@ static UqPtr<ImGuiData> im_data = nullptr;
 static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-    GFX::DBG::SCOPE a("ImGui render");
+    GFX::DBG::SCOPE a(IM_API "ImGui render");
+    DProfContext _(IM_API "Rendering draw lists");
 
     ImGuiIO& io = ImGui::GetIO();
     int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
@@ -219,7 +222,8 @@ static void ImGui_ImplSdlGL3_SetClipboardText(void*, const char* text)
 
 void ImGui_ImplSdlGL3_CreateFontsTexture()
 {
-    GFX::DBG::SCOPE a("ImGui create font texture");
+    DProfContext _(IM_API "Creating font atlas");
+    GFX::DBG::SCOPE a(IM_API "Create font atlas");
 
     // Build texture atlas
     ImGuiIO& io = ImGui::GetIO();
@@ -243,6 +247,8 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
 
 bool Coffee::CImGui::CreateDeviceObjects()
 {
+    DProfContext _(IM_API "Creating device data");
+
     constexpr cstring vertex_shader =
         #if defined(COFFEE_GLEAM_DESKTOP)
             "#version 330\n"
@@ -284,17 +290,22 @@ bool Coffee::CImGui::CreateDeviceObjects()
     if(im_data)
         return true;
 
-    GFX::DBG::SCOPE a("ImGui creation");
+    GFX::DBG::SCOPE a(IM_API "Creating device data");
 
     im_data = UqPtr<ImGuiData>(new ImGuiData);
 
     u32 attr_idx[3] = {};
 
-    im_data->attributes.alloc();
-    im_data->vertices.alloc();
-    im_data->elements.alloc();
+    do {
+        DProfContext _(IM_API "Allocating vertex objects");
+        im_data->attributes.alloc();
+        im_data->vertices.alloc();
+        im_data->elements.alloc();
+    } while(false);
 
-    {
+    do {
+        DProfContext _(IM_API "Compiling shaders");
+
         GFX::SHD vert;
         GFX::SHD frag;
         auto& pip = im_data->pipeline;
@@ -322,12 +333,12 @@ bool Coffee::CImGui::CreateDeviceObjects()
 
         cDebug("Shader pipeline is assembled");
 
-//        vert.dealloc();
-//        frag.dealloc();
-
         Vector<GFX::UNIFDESC> unifs;
         Vector<GFX::PPARAM> params;
+
+        Profiler::DeepPushContext(IM_API "Getting shader properties");
         GFX::GetShaderUniformState(pip, &unifs, &params);
+        Profiler::DeepPopContext();
 
         for(auto const& unif : unifs)
         {
@@ -346,9 +357,11 @@ bool Coffee::CImGui::CreateDeviceObjects()
             if(attr.m_name == "Color")
                 attr_idx[2] = attr.m_idx;
         }
-    }
+    } while (false);
 
-    {
+    do {
+        DProfContext _(IM_API "Creating vertex array object");
+
         GFX::V_ATTR pos;
         GFX::V_ATTR tex;
         GFX::V_ATTR col;
@@ -374,18 +387,19 @@ bool Coffee::CImGui::CreateDeviceObjects()
 
         a.bindBuffer(0, im_data->vertices);
         a.setIndexBuffer(&im_data->elements);
-    }
+    } while(false);
 
     ImGui_ImplSdlGL3_CreateFontsTexture();
 
     return true;
 }
 
-void    Coffee::CImGui::InvalidateDeviceObjects()
+void Coffee::CImGui::InvalidateDeviceObjects()
 {
     if(im_data)
     {
-        GFX::DBG::SCOPE a("ImGui invalidation");
+        DProfContext _(IM_API "Invalidating device objects");
+        GFX::DBG::SCOPE a(IM_API "Invalidating device objects");
         im_data->vertices.dealloc();
         im_data->elements.dealloc();
         im_data->attributes.dealloc();
@@ -395,12 +409,12 @@ void    Coffee::CImGui::InvalidateDeviceObjects()
 template<typename T>
 inline T const& C(c_cptr d)
 {
-    return *((T const*)d);
+    return *(C_FCAST<T const*>(d));
 }
 
 void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
 {
-    ImGuiIO* io = (ImGuiIO*)r;
+    ImGuiIO* io = C_FCAST<ImGuiIO*>(r);
 
     switch(ev.type)
     {
@@ -506,6 +520,7 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
 
 static void SetStyle()
 {
+    DProfContext _(IM_API "Applying custom style");
     ImGuiStyle& style = ImGui::GetStyle();
     style.WindowRounding = 0.f;
     style.FrameRounding = 3.f;
@@ -573,8 +588,10 @@ static void SetStyle()
 }
 
 bool Coffee::CImGui::Init(
-        WindowManagerClient& window, EventApplication &event)
+        WindowManagerClient&, EventApplication &event)
 {
+    DProfContext _(IM_API "Initializing state");
+
     ImGuiIO& io = ImGui::GetIO();
 
     event.installEventHandler(
@@ -601,6 +618,7 @@ bool Coffee::CImGui::Init(
 
 void Coffee::CImGui::Shutdown()
 {
+    DProfContext _(IM_API "Shutting down");
     im_data = nullptr;
 
     InvalidateDeviceObjects();
@@ -610,6 +628,7 @@ void Coffee::CImGui::Shutdown()
 void Coffee::CImGui::NewFrame(WindowManagerClient& window,
                                EventApplication& event)
 {
+    DProfContext _(IM_API "Preparing frame data");
     if (!g_FontTexture)
         CreateDeviceObjects();
 
@@ -628,8 +647,8 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
 
     // Setup time step
     auto time = event.contextTime();
-    io.DeltaTime = g_Time > 0.0 ? (float)(time - g_Time)
-                                : (float)(1.0f / 60.0f);
+    io.DeltaTime = g_Time > 0.0 ? C_CAST<float>(time - g_Time)
+                                : C_CAST<float>(1.0f / 60.0f);
     g_Time = time;
 
     // Setup inputs
@@ -644,12 +663,13 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
     g_MouseWheel = 0.0f;
 
     // Start the frame
+    DProfContext __(IM_API "Running ImGui::NewFrame()");
     ImGui::NewFrame();
 }
 
 void CImGui::EndFrame()
 {
-    ImGuiIO& io = ImGui::GetIO();
+    DProfContext _(IM_API "Rendering UI");
 
     ImGui::Render();
 }
