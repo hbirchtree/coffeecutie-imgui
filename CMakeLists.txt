@@ -46,9 +46,11 @@ add_definitions(
 	-DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCS
 	)
 
-coffee_add_library ( CoffeeImGui
-    "${SRCS}" "${LIBS}"
-    "${CMAKE_SOURCE_DIR}/include/coffee/imgui"
+coffee_library ( 
+    TARGET CoffeeImGui
+    SOURCES ${SRCS} 
+    LIBRARIES ${LIBS}
+    HEADER_DIRS "${CMAKE_SOURCE_DIR}/include/coffee/imgui"
     )
 
 target_include_directories ( CoffeeImGui
