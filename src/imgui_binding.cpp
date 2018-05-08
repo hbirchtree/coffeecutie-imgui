@@ -1,16 +1,19 @@
 // ImGui SDL2 binding with OpenGL3
-// In this binding, ImTextureID is used to store an OpenGL 'GLuint' texture identifier. Read the FAQ about ImTextureID in imgui.cpp.
+// In this binding, ImTextureID is used to store an OpenGL 'GLuint' texture
+// identifier. Read the FAQ about ImTextureID in imgui.cpp.
 
-// You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
-// If you use this binding you'll need to call 4 functions: ImGui_ImplXXXX_Init(), ImGui_ImplXXXX_NewFrame(), ImGui::Render() and ImGui_ImplXXXX_Shutdown().
-// If you are new to ImGui, see examples/README.txt and documentation at the top of imgui.cpp.
+// You can copy and use unmodified imgui_impl_* files in your project. See
+// main.cpp for an example of using this. If you use this binding you'll need to
+// call 4 functions: ImGui_ImplXXXX_Init(), ImGui_ImplXXXX_NewFrame(),
+// ImGui::Render() and ImGui_ImplXXXX_Shutdown(). If you are new to ImGui, see
+// examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
 #include <CoffeeDef.h>
-#include <coffee/imgui/imgui_binding.h>
-#include <coffee/graphics/apis/CGLeamRHI>
 #include <coffee/core/CDebug>
 #include <coffee/core/platform_data.h>
+#include <coffee/graphics/apis/CGLeamRHI>
+#include <coffee/imgui/imgui_binding.h>
 
 #define IM_API "ImGui::"
 
@@ -47,11 +50,10 @@ static const Vector<Pair<ImGuiKey_, u16>> ImKeyMap = {
 
 STATICINLINE C_MAYBE_UNUSED ImGuiKey CfToImKey(u32 k)
 {
-    auto it = std::find_if(ImKeyMap.begin(), ImKeyMap.end(),
-                 [k](Pair<ImGuiKey_,u16> const& p)
-    {
-        return p.second == k;
-    });
+    auto it = std::find_if(
+        ImKeyMap.begin(), ImKeyMap.end(), [k](Pair<ImGuiKey_, u16> const& p) {
+            return p.second == k;
+        });
     if(it != ImKeyMap.end())
         return it->first;
     return 0;
@@ -59,33 +61,32 @@ STATICINLINE C_MAYBE_UNUSED ImGuiKey CfToImKey(u32 k)
 
 STATICINLINE C_MAYBE_UNUSED u32 ImToCfKey(ImGuiKey k)
 {
-    auto it = std::find_if(ImKeyMap.begin(), ImKeyMap.end(),
-                           [k](Pair<ImGuiKey_,u16> const& p)
-    {
-        return p.first == k;
-    });
+    auto it = std::find_if(
+        ImKeyMap.begin(), ImKeyMap.end(), [k](Pair<ImGuiKey_, u16> const& p) {
+            return p.first == k;
+        });
     if(it != ImKeyMap.end())
         return it->second;
     return 0;
 }
 
 // Data
-static double       g_Time = 0.0;
-//static bool         g_MousePressed[3] = { false, false, false };
-static float        g_MouseWheel = 0.0f;
-static GLuint       g_FontTexture = 0;
-//static int          g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
-//static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
-//static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
-//static unsigned int g_VboHandle = 0, g_VaoHandle = 0, g_ElementsHandle = 0;
+static double g_Time = 0.0;
+// static bool         g_MousePressed[3] = { false, false, false };
+static float  g_MouseWheel  = 0.0f;
+static GLuint g_FontTexture = 0;
+// static int          g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
+// static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
+// static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0,
+// g_AttribLocationColor = 0;  static unsigned int g_VboHandle = 0, g_VaoHandle
+// = 0, g_ElementsHandle = 0;
 
 struct ImGuiData
 {
-    ImGuiData():
-        attributes(),
-        pipeline(),
-        vertices(ResourceAccess::Streaming|ResourceAccess::WriteOnly, 0),
-        elements(ResourceAccess::Streaming|ResourceAccess::WriteOnly, 0),
+    ImGuiData() :
+        attributes(), pipeline(),
+        vertices(ResourceAccess::Streaming | ResourceAccess::WriteOnly, 0),
+        elements(ResourceAccess::Streaming | ResourceAccess::WriteOnly, 0),
         fonts(PixFmt::RGBA8)
     {
         fonts_sampler.attach(&fonts);
@@ -95,32 +96,35 @@ struct ImGuiData
     }
 
     GFX::V_DESC attributes;
-    GFX::PIP pipeline;
-    GFX::BUF_A vertices;
-    GFX::BUF_E elements;
+    GFX::PIP    pipeline;
+    GFX::BUF_A  vertices;
+    GFX::BUF_E  elements;
 
     GFX::UNIFDESC u_tex;
     GFX::UNIFDESC u_xf;
 
-    GFX::S_2D fonts;
+    GFX::S_2D  fonts;
     GFX::SM_2D fonts_sampler;
 };
 
 static UqPtr<ImGuiData> im_data = nullptr;
 
-// This is the main rendering function that you have to implement and provide to ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure)
-// If text or lines are blurry when integrating ImGui in your engine:
-// - in your Render function, try translating your projection matrix by (0.5f,0.5f) or (0.375f,0.375f)
+// This is the main rendering function that you have to implement and provide to
+// ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure) If text
+// or lines are blurry when integrating ImGui in your engine:
+// - in your Render function, try translating your projection matrix by
+// (0.5f,0.5f) or (0.375f,0.375f)
 static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 {
-    // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+    // Avoid rendering when minimized, scale coordinates for retina displays
+    // (screen coordinates != framebuffer coordinates)
     GFX::DBG::SCOPE a(IM_API "ImGui render");
-    DProfContext _(IM_API "Rendering draw lists");
+    DProfContext    _(IM_API "Rendering draw lists");
 
-    ImGuiIO& io = ImGui::GetIO();
-    int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
-    int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
-    if (fb_width == 0 || fb_height == 0)
+    ImGuiIO& io        = ImGui::GetIO();
+    int      fb_width  = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+    int      fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+    if(fb_width == 0 || fb_height == 0)
         return;
     draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
@@ -142,65 +146,61 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
     GFX::USTATE v_state;
     GFX::USTATE f_state;
 
-    const float ortho_projection[4][4] =
-    {
-        { 2.0f/io.DisplaySize.x, 0.0f,                   0.0f, 0.0f },
-        { 0.0f,                  2.0f/-io.DisplaySize.y, 0.0f, 0.0f },
-        { 0.0f,                  0.0f,                  -1.0f, 0.0f },
-        {-1.0f,                  1.0f,                   0.0f, 1.0f },
+    const float ortho_projection[4][4] = {
+        {2.0f / io.DisplaySize.x, 0.0f, 0.0f, 0.0f},
+        {0.0f, 2.0f / -io.DisplaySize.y, 0.0f, 0.0f},
+        {0.0f, 0.0f, -1.0f, 0.0f},
+        {-1.0f, 1.0f, 0.0f, 1.0f},
     };
 
-    Bytes xf_data = {C_FCAST<u8*>(ortho_projection),  sizeof(ortho_projection), 0};
+    Bytes xf_data = {
+        C_FCAST<u8*>(ortho_projection), sizeof(ortho_projection), 0};
     GFX::UNIFVAL xf_value;
-    auto handle = im_data->fonts_sampler.handle();
-    xf_value.data = &xf_data;
+    auto         handle = im_data->fonts_sampler.handle();
+    xf_value.data       = &xf_data;
 
     v_state.setUniform(im_data->u_xf, &xf_value);
     f_state.setSampler(im_data->u_tex, &handle);
 
-    GFX::PSTATE pipstate =
-    {
-        {ShaderStage::Vertex, &v_state},
-        {ShaderStage::Fragment, &f_state}
-    };
+    GFX::PSTATE pipstate = {{ShaderStage::Vertex, &v_state},
+                            {ShaderStage::Fragment, &f_state}};
 
     glBlendEquation(GL_FUNC_ADD);
 
     GFX::D_CALL dc(true, false);
     GFX::D_DATA dd;
-    dd.m_eltype = (sizeof(ImDrawIdx) == 2)
-            ? TypeEnum::UShort : TypeEnum::UInt;
+    dd.m_eltype = (sizeof(ImDrawIdx) == 2) ? TypeEnum::UShort : TypeEnum::UInt;
 
-    for(int n=0;n<draw_data->CmdListsCount;n++)
+    for(int n = 0; n < draw_data->CmdListsCount; n++)
     {
         auto cmd_list = draw_data->CmdLists[n];
-        dd.m_eoff = 0;
+        dd.m_eoff     = 0;
 
-        im_data->vertices.commit(cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), cmd_list->VtxBuffer.Data);
-        im_data->elements.commit(cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), cmd_list->IdxBuffer.Data);
+        im_data->vertices.commit(
+            cmd_list->VtxBuffer.Size * sizeof(ImDrawVert),
+            cmd_list->VtxBuffer.Data);
+        im_data->elements.commit(
+            cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx),
+            cmd_list->IdxBuffer.Data);
 
-        for(int cmd_i=0;cmd_i<cmd_list->CmdBuffer.Size;cmd_i++)
+        for(int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
-            auto cmd = &cmd_list->CmdBuffer[cmd_i];
+            auto cmd   = &cmd_list->CmdBuffer[cmd_i];
             dd.m_elems = cmd->ElemCount;
             if(cmd->UserCallback)
                 cmd->UserCallback(cmd_list, cmd);
             else
             {
-                view_.m_scissor[0] =
-                {
-                    (int)cmd->ClipRect.x,
-                    (int)(fb_height - cmd->ClipRect.w),
-                    (int)(cmd->ClipRect.z - cmd->ClipRect.x),
-                    (int)(cmd->ClipRect.w - cmd->ClipRect.y)
-                };
+                view_.m_scissor[0] = {(int)cmd->ClipRect.x,
+                                      (int)(fb_height - cmd->ClipRect.w),
+                                      (int)(cmd->ClipRect.z - cmd->ClipRect.x),
+                                      (int)(cmd->ClipRect.w - cmd->ClipRect.y)};
                 GFX::SetViewportState(view_);
-                handle.glTexHandle() =
-                        ExtractIntegerPtr<u32>(cmd->TextureId);
+                handle.glTexHandle() = ExtractIntegerPtr<u32>(cmd->TextureId);
                 /* TODO: Improve this by using batching structure,
                  *  D_DATA arrays */
-                GFX::Draw(im_data->pipeline, pipstate,
-                          im_data->attributes, dc, dd);
+                GFX::Draw(
+                    im_data->pipeline, pipstate, im_data->attributes, dc, dd);
             }
             dd.m_eoff += cmd->ElemCount;
         }
@@ -217,27 +217,29 @@ static const char* ImGui_ImplSdlGL3_GetClipboardText(void*)
 
 static void ImGui_ImplSdlGL3_SetClipboardText(void*, const char* text)
 {
-//    SDL_SetClipboardText(text);
+    //    SDL_SetClipboardText(text);
 }
 
 void ImGui_ImplSdlGL3_CreateFontsTexture()
 {
-    DProfContext _(IM_API "Creating font atlas");
+    DProfContext    _(IM_API "Creating font atlas");
     GFX::DBG::SCOPE a(IM_API "Create font atlas");
 
     // Build texture atlas
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO&       io = ImGui::GetIO();
     unsigned char* pixels;
-    int width, height;
-    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);   // Load as RGBA 32-bits for OpenGL3 demo because it is more likely to be compatible with user's existing shader.
+    int            width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    auto& s = im_data->fonts;
+    auto& s  = im_data->fonts;
     auto& sm = im_data->fonts_sampler;
 
     s.allocate({width, height}, PixCmp::RGBA);
-    s.upload(BitFmt::UByte, PixCmp::RGBA, {width, height},
-             Bytes(pixels, GetPixSize(BitFmt::UByte, PixCmp::RGBA,
-                                      width * height)));
+    s.upload(
+        BitFmt::UByte,
+        PixCmp::RGBA,
+        {width, height},
+        Bytes(pixels, GetPixSize(BitFmt::UByte, PixCmp::RGBA, width * height)));
 
     sm.alloc();
     sm.setFiltering(Filtering::Linear, Filtering::Linear);
@@ -250,42 +252,40 @@ bool Coffee::CImGui::CreateDeviceObjects()
     DProfContext _(IM_API "Creating device data");
 
     constexpr cstring vertex_shader =
-        #if defined(COFFEE_GLEAM_DESKTOP)
-            "#version 330\n"
-        #else
-            "#version 300 es\n"
-        #endif
-            "uniform mat4 ProjMtx;\n"
-            "in vec2 Position;\n"
-            "in vec2 UV;\n"
-            "in vec4 Color;\n"
-            "out vec2 Frag_UV;\n"
-            "out vec4 Frag_Color;\n"
-            "void main()\n"
-            "{\n"
-            "	Frag_UV = UV;\n"
-            "	Frag_Color = Color;\n"
-            "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-            "}\n"
-            ;
+#if defined(COFFEE_GLEAM_DESKTOP)
+        "#version 330\n"
+#else
+        "#version 300 es\n"
+#endif
+        "uniform mat4 ProjMtx;\n"
+        "in vec2 Position;\n"
+        "in vec2 UV;\n"
+        "in vec4 Color;\n"
+        "out vec2 Frag_UV;\n"
+        "out vec4 Frag_Color;\n"
+        "void main()\n"
+        "{\n"
+        "	Frag_UV = UV;\n"
+        "	Frag_Color = Color;\n"
+        "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+        "}\n";
 
     constexpr cstring fragment_shader =
-        #if defined(COFFEE_GLEAM_DESKTOP)
-            "#version 330\n"
-        #else
-            "#version 300 es\n"
-        #endif
-            "uniform sampler2D Texture;\n"
-            "in vec2 Frag_UV;\n"
-            "in vec4 Frag_Color;\n"
-        #if !defined(COFFEE_GLES20_MODE)
-            "out vec4 OutColor;\n"
-        #endif
-            "void main()\n"
-            "{\n"
-            "	OutColor = Frag_Color * texture( Texture, Frag_UV.st);\n"
-            "}\n"
-            ;
+#if defined(COFFEE_GLEAM_DESKTOP)
+        "#version 330\n"
+#else
+        "#version 300 es\n"
+#endif
+        "uniform sampler2D Texture;\n"
+        "in vec2 Frag_UV;\n"
+        "in vec4 Frag_Color;\n"
+#if !defined(COFFEE_GLES20_MODE)
+        "out vec4 OutColor;\n"
+#endif
+        "void main()\n"
+        "{\n"
+        "	OutColor = Frag_Color * texture( Texture, Frag_UV.st);\n"
+        "}\n";
 
     if(im_data)
         return true;
@@ -296,29 +296,32 @@ bool Coffee::CImGui::CreateDeviceObjects()
 
     u32 attr_idx[3] = {};
 
-    do {
+    do
+    {
         DProfContext _(IM_API "Allocating vertex objects");
         im_data->attributes.alloc();
         im_data->vertices.alloc();
         im_data->elements.alloc();
     } while(false);
 
-    do {
+    do
+    {
         DProfContext _(IM_API "Compiling shaders");
 
         GFX::SHD vert;
         GFX::SHD frag;
-        auto& pip = im_data->pipeline;
+        auto&    pip = im_data->pipeline;
 
         auto vd = Bytes::CreateString(vertex_shader);
         if(!vert.compile(ShaderStage::Vertex, vd))
-            cDebug("Failed to compile vertex shader, using: \n{0}",
-                   vertex_shader);
+            cDebug(
+                "Failed to compile vertex shader, using: \n{0}", vertex_shader);
 
         auto fd = Bytes::CreateString(fragment_shader);
         if(!frag.compile(ShaderStage::Fragment, fd))
-            cDebug("Failed to compile fragment shader, using: \n{0}",
-                   fragment_shader);
+            cDebug(
+                "Failed to compile fragment shader, using: \n{0}",
+                fragment_shader);
 
         auto& vert_owned = pip.storeShader(std::move(vert));
         auto& frag_owned = pip.storeShader(std::move(frag));
@@ -334,7 +337,7 @@ bool Coffee::CImGui::CreateDeviceObjects()
         cDebug("Shader pipeline is assembled");
 
         Vector<GFX::UNIFDESC> unifs;
-        Vector<GFX::PPARAM> params;
+        Vector<GFX::PPARAM>   params;
 
         Profiler::DeepPushContext(IM_API "Getting shader properties");
         GFX::GetShaderUniformState(pip, &unifs, &params);
@@ -357,28 +360,29 @@ bool Coffee::CImGui::CreateDeviceObjects()
             if(attr.m_name == "Color")
                 attr_idx[2] = attr.m_idx;
         }
-    } while (false);
+    } while(false);
 
-    do {
+    do
+    {
         DProfContext _(IM_API "Creating vertex array object");
 
         GFX::V_ATTR pos;
         GFX::V_ATTR tex;
         GFX::V_ATTR col;
-        auto& a = im_data->attributes;
+        auto&       a = im_data->attributes;
 
         pos.m_idx = attr_idx[0];
         tex.m_idx = attr_idx[1];
         col.m_idx = attr_idx[2];
 
         pos.m_size = tex.m_size = 2;
-        col.m_size = 4;
+        col.m_size              = 4;
 
         pos.m_stride = tex.m_stride = col.m_stride = sizeof(ImDrawVert);
-        pos.m_off = offsetof(ImDrawVert,pos);
-        tex.m_off = offsetof(ImDrawVert,uv);
-        col.m_off = offsetof(ImDrawVert,col);
-        col.m_type = TypeEnum::UByte;
+        pos.m_off                                  = offsetof(ImDrawVert, pos);
+        tex.m_off                                  = offsetof(ImDrawVert, uv);
+        col.m_off                                  = offsetof(ImDrawVert, col);
+        col.m_type                                 = TypeEnum::UByte;
         col.m_flags = GFX::AttributePacked | GFX::AttributeNormalization;
 
         a.addAttribute(pos);
@@ -398,7 +402,7 @@ void Coffee::CImGui::InvalidateDeviceObjects()
 {
     if(im_data)
     {
-        DProfContext _(IM_API "Invalidating device objects");
+        DProfContext    _(IM_API "Invalidating device objects");
         GFX::DBG::SCOPE a(IM_API "Invalidating device objects");
         im_data->vertices.dealloc();
         im_data->elements.dealloc();
@@ -423,14 +427,12 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
         CIMTouchMotionEvent const& pan = C<CIMTouchMotionEvent>(data);
 
         io->MousePos = {
-            (pan.origin.x + pan.translation.x)
-            / io->DisplayFramebufferScale.x,
-            (pan.origin.y + pan.translation.y)
-            / io->DisplayFramebufferScale.y};
+            (pan.origin.x + pan.translation.x) / io->DisplayFramebufferScale.x,
+            (pan.origin.y + pan.translation.y) / io->DisplayFramebufferScale.y};
 
         auto btn = CIMouseButtonEvent::LeftButton;
 
-        io->MouseDown[btn - 1] = true;
+        io->MouseDown[btn - 1]       = true;
         io->MouseClickedPos[btn - 1] = io->MousePos;
 
         break;
@@ -439,13 +441,10 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
     {
         CITouchTapEvent const& tap = C<CITouchTapEvent>(data);
 
-        io->MouseDown[CIMouseButtonEvent::LeftButton - 1]
-                = tap.pressed;
-        io->MouseClickedPos[CIMouseButtonEvent::LeftButton - 1]
-                = {
+        io->MouseDown[CIMouseButtonEvent::LeftButton - 1]       = tap.pressed;
+        io->MouseClickedPos[CIMouseButtonEvent::LeftButton - 1] = {
             tap.pos.x / io->DisplayFramebufferScale.x,
-            tap.pos.y / io->DisplayFramebufferScale.y
-                  };
+            tap.pos.y / io->DisplayFramebufferScale.y};
 
         break;
     }
@@ -454,7 +453,7 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
         auto ev = C<CIMouseButtonEvent>(data);
         if(ev.btn < 5 && ev.btn > 0)
         {
-            bool flag = ev.mod & CIMouseButtonEvent::Pressed;
+            bool flag                 = ev.mod & CIMouseButtonEvent::Pressed;
             io->MouseDown[ev.btn - 1] = flag;
             io->MouseClickedPos[ev.btn - 1] = {ev.pos.x, ev.pos.y};
         }
@@ -462,7 +461,7 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
     }
     case CIEvent::MouseMove:
     {
-        auto ev = C<CIMouseMoveEvent>(data);
+        auto ev      = C<CIMouseMoveEvent>(data);
         io->MousePos = {
             (ev.origin.x + ev.delta.x) / io->DisplayFramebufferScale.x,
             (ev.origin.y + ev.delta.y) / io->DisplayFramebufferScale.y};
@@ -474,20 +473,17 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
         auto ev = C<CIKeyEvent>(data);
         if(ev.key < 512)
         {
-            if(
-                    ((  ev.key >= CK_a && ev.key <= CK_z)
-                     ||(ev.key >= CK_A && ev.key <= CK_Z)
-                     ||(ev.key >= CK_0 && ev.key <= CK_9))
-                    && (ev.mod & CIKeyEvent::RepeatedModifier
-                        || ev.mod & CIKeyEvent::PressedModifier
-                        )
-                    )
+            if(((ev.key >= CK_a && ev.key <= CK_z) ||
+                (ev.key >= CK_A && ev.key <= CK_Z) ||
+                (ev.key >= CK_0 && ev.key <= CK_9)) &&
+               (ev.mod & CIKeyEvent::RepeatedModifier ||
+                ev.mod & CIKeyEvent::PressedModifier))
                 io->AddInputCharacter(C_CAST<ImWchar>(ev.key));
 
             io->KeysDown[ev.key] = ev.mod & CIKeyEvent::PressedModifier;
 
-            io->KeyAlt = ev.mod & CIKeyEvent::LAltModifier;
-            io->KeyCtrl = ev.mod & CIKeyEvent::LCtrlModifier;
+            io->KeyAlt   = ev.mod & CIKeyEvent::LAltModifier;
+            io->KeyCtrl  = ev.mod & CIKeyEvent::LCtrlModifier;
             io->KeyShift = ev.mod & CIKeyEvent::LShiftModifier;
             io->KeySuper = ev.mod & CIKeyEvent::SuperModifier;
 
@@ -521,95 +517,103 @@ void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
 static void SetStyle()
 {
     DProfContext _(IM_API "Applying custom style");
-    ImGuiStyle& style = ImGui::GetStyle();
-    style.WindowRounding = 0.f;
-    style.FrameRounding = 3.f;
+    ImGuiStyle&  style      = ImGui::GetStyle();
+    style.WindowRounding    = 0.f;
+    style.FrameRounding     = 3.f;
     style.ScrollbarRounding = 0;
-    style.FramePadding = {0.f, 3.f};
+    style.FramePadding      = {0.f, 3.f};
 
-    style.Colors[ImGuiCol_Text]                  = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    style.Colors[ImGuiCol_TextDisabled]          = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    style.Colors[ImGuiCol_WindowBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
-    style.Colors[ImGuiCol_ChildWindowBg]         = ImVec4(1.00f, 1.00f, 1.00f, 0.01f);
-    style.Colors[ImGuiCol_PopupBg]               = ImVec4(0.00f, 0.00f, 0.00f, 0.99f);
-    style.Colors[ImGuiCol_Border]                = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-    style.Colors[ImGuiCol_BorderShadow]          = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_FrameBg]               = ImVec4(1.00f, 1.00f, 1.00f, 0.03f);
-    style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-    style.Colors[ImGuiCol_FrameBgActive]         = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
-    style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.00f, 0.00f, 0.00f, 0.99f);
-    style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.00f, 0.00f, 0.00f, 0.99f);
-    style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
-    style.Colors[ImGuiCol_ScrollbarBg]           = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_ScrollbarGrab]         = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-    style.Colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-    style.Colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
-    style.Colors[ImGuiCol_ComboBg]               = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    style.Colors[ImGuiCol_CheckMark]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    style.Colors[ImGuiCol_SliderGrab]            = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_SliderGrabActive]      = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_Button]                = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-    style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-    style.Colors[ImGuiCol_ButtonActive]          = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_Header]                = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-    style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(1.00f, 1.00f, 1.00f, 0.25f);
-    style.Colors[ImGuiCol_HeaderActive]          = ImVec4(1.00f, 1.00f, 1.00f, 0.15f);
-    style.Colors[ImGuiCol_Column]                = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_ColumnHovered]         = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_ColumnActive]          = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
-    style.Colors[ImGuiCol_ResizeGripHovered]     = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-    style.Colors[ImGuiCol_ResizeGripActive]      = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_CloseButton]           = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-    style.Colors[ImGuiCol_CloseButtonHovered]    = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    style.Colors[ImGuiCol_CloseButtonActive]     = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-    style.Colors[ImGuiCol_PlotLines]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    style.Colors[ImGuiCol_PlotLinesHovered]      = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_PlotHistogram]         = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
-    style.Colors[ImGuiCol_PlotHistogramHovered]  = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_TextSelectedBg]        = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
-    style.Colors[ImGuiCol_ModalWindowDarkening]  = ImVec4(0.00f, 0.00f, 0.00f, 0.80f);
-    
+    style.Colors[ImGuiCol_Text]           = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_TextDisabled]   = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+    style.Colors[ImGuiCol_WindowBg]       = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
+    style.Colors[ImGuiCol_ChildWindowBg]  = ImVec4(1.00f, 1.00f, 1.00f, 0.01f);
+    style.Colors[ImGuiCol_PopupBg]        = ImVec4(0.00f, 0.00f, 0.00f, 0.99f);
+    style.Colors[ImGuiCol_Border]         = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+    style.Colors[ImGuiCol_BorderShadow]   = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_FrameBg]        = ImVec4(1.00f, 1.00f, 1.00f, 0.03f);
+    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+    style.Colors[ImGuiCol_FrameBgActive]  = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
+    style.Colors[ImGuiCol_TitleBg]        = ImVec4(0.00f, 0.00f, 0.00f, 0.99f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] =
+        ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.00f, 0.00f, 0.00f, 0.99f);
+    style.Colors[ImGuiCol_MenuBarBg]     = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
+    style.Colors[ImGuiCol_ScrollbarBg]   = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
+    style.Colors[ImGuiCol_ComboBg]    = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_CheckMark]  = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+    style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_SliderGrabActive] =
+        ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_Button]        = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+    style.Colors[ImGuiCol_ButtonActive]  = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_Header]        = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+    style.Colors[ImGuiCol_HeaderHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.25f);
+    style.Colors[ImGuiCol_HeaderActive]  = ImVec4(1.00f, 1.00f, 1.00f, 0.15f);
+    style.Colors[ImGuiCol_Column]        = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_ColumnHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_ColumnActive]  = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_ResizeGrip]    = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
+    style.Colors[ImGuiCol_ResizeGripHovered] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+    style.Colors[ImGuiCol_ResizeGripActive] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_CloseButton] = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+    style.Colors[ImGuiCol_CloseButtonHovered] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+    style.Colors[ImGuiCol_CloseButtonActive] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+    style.Colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_PlotLinesHovered] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+    style.Colors[ImGuiCol_PlotHistogramHovered] =
+        ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+    style.Colors[ImGuiCol_ModalWindowDarkening] =
+        ImVec4(0.00f, 0.00f, 0.00f, 0.80f);
+
     for(auto i : Range<>(ImGuiCol_COUNT))
     {
         auto alpha = style.Colors[i].w;
-        
+
         auto col = ImVec4(0.f, 0.f, 0.f, alpha);
-        
+
         if(style.Colors[i].x > 0.5f)
             col = ImVec4(0.3f, 0.3f, 1.f, alpha);
-        
+
         style.Colors[i] = col;
     }
-    
-    style.Colors[ImGuiCol_PlotLines]             = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    
+
+    style.Colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 }
 
-bool Coffee::CImGui::Init(
-        WindowManagerClient&, EventApplication &event)
+bool Coffee::CImGui::Init(WindowManagerClient&, EventApplication& event)
 {
     DProfContext _(IM_API "Initializing state");
 
     ImGuiIO& io = ImGui::GetIO();
 
-    event.installEventHandler(
-    {
-                    ImGui_InputHandle,
-                    "ImGui input handler",
-                    &io
-                });
+    event.installEventHandler({ImGui_InputHandle, "ImGui input handler", &io});
 
     for(auto const& p : ImKeyMap)
     {
         io.KeyMap[p.first] = p.second;
     }
 
-    io.RenderDrawListsFn = ImGui_ImplSdlGL3_RenderDrawLists;   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+    io.RenderDrawListsFn =
+        ImGui_ImplSdlGL3_RenderDrawLists; // Alternatively you can set this to
+                                          // NULL and call ImGui::GetDrawData()
+                                          // after ImGui::Render() to get the
+                                          // same ImDrawData pointer.
     io.SetClipboardTextFn = ImGui_ImplSdlGL3_SetClipboardText;
     io.GetClipboardTextFn = ImGui_ImplSdlGL3_GetClipboardText;
-    io.ClipboardUserData = NULL;
+    io.ClipboardUserData  = NULL;
 
     SetStyle();
 
@@ -625,11 +629,11 @@ void Coffee::CImGui::Shutdown()
     ImGui::Shutdown();
 }
 
-void Coffee::CImGui::NewFrame(WindowManagerClient& window,
-                               EventApplication& event)
+void Coffee::CImGui::NewFrame(
+    WindowManagerClient& window, EventApplication& event)
 {
     DProfContext _(IM_API "Preparing frame data");
-    if (!g_FontTexture)
+    if(!g_FontTexture)
         CreateDeviceObjects();
 
     ImGuiIO& io = ImGui::GetIO();
@@ -639,28 +643,25 @@ void Coffee::CImGui::NewFrame(WindowManagerClient& window,
 
     scalar uiScaling = PlatformData::DeviceDPI();
 
-    io.DisplaySize = ImVec2(
-                s.w / uiScaling,
-                s.h / uiScaling
-                );
+    io.DisplaySize             = ImVec2(s.w / uiScaling, s.h / uiScaling);
     io.DisplayFramebufferScale = ImVec2(uiScaling, uiScaling);
 
     // Setup time step
-    auto time = event.contextTime();
+    auto time    = event.contextTime();
     io.DeltaTime = g_Time > 0.0 ? C_CAST<float>(time - g_Time)
                                 : C_CAST<float>(1.0f / 60.0f);
     g_Time = time;
 
     // Setup inputs
 #if !defined(COFFEE_ANDROID) && !defined(COFFEE_APPLE_MOBILE)
-    auto pos = event.mousePosition();
+    auto pos    = event.mousePosition();
     io.MousePos = ImVec2(pos.x / uiScaling, pos.y / uiScaling);
 #else
     io.MouseDown[CIMouseButtonEvent::LeftButton - 1] = false;
 #endif
 
     io.MouseWheel = g_MouseWheel;
-    g_MouseWheel = 0.0f;
+    g_MouseWheel  = 0.0f;
 
     // Start the frame
     DProfContext __(IM_API "Running ImGui::NewFrame()");
