@@ -231,6 +231,8 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
     int            width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
+    auto pixelDataSize = GetPixSize(BitFmt::UByte, PixCmp::RGBA, width * height);
+
     auto& s  = im_data->fonts;
     auto& sm = im_data->fonts_sampler;
 
@@ -239,7 +241,7 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
         BitFmt::UByte,
         PixCmp::RGBA,
         {width, height},
-        Bytes(pixels, GetPixSize(BitFmt::UByte, PixCmp::RGBA, width * height)));
+        Bytes::From(pixels, pixelDataSize));
 
     sm.alloc();
     sm.setFiltering(Filtering::Linear, Filtering::Linear);
