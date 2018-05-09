@@ -1,5 +1,7 @@
 after_success:
 - ci/travis-deploy.sh
+apt:
+  update: true
 before_script:
 - ci/travis-deps.sh
 branches:
