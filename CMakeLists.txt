@@ -21,11 +21,9 @@ set ( SRCS
     ${IMGUI_DIR}/imgui_draw.cpp
     )
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    list ( APPEND SRCS
-        ${IMGUI_DIR}/imgui_demo.cpp
-        )
-endif()
+list ( APPEND SRCS
+    ${IMGUI_DIR}/imgui_demo.cpp
+    )
 
 set ( LIBS
     CoffeeCore; CoffeeRenderer_Default;
