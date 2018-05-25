@@ -1,9 +1,8 @@
 project ( coffeeimgui )
 cmake_minimum_required(VERSION 3.1)
 
-set ( CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/Modules" )
-include( SubprojectFunctions )
-Init_Subproject()
+include( toolchain/cmake/Modules/SubprojectFunctions.cmake )
+init_subproject()
 
 find_package ( StandardLibs REQUIRED )
 if(COFFEE_BUILD_SDL2)

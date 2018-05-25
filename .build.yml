@@ -11,9 +11,9 @@ branches:
   name: testing
 coverage: false
 dependencies:
-  hbirchtree/coffeecutie: automated-release-4.2.16.0.2-7-gf285cee
+  hbirchtree/coffeecutie: automated-release-4.2.16.0.2-25-g01ba0b3
 display_name: Coffee Imgui
-makefile_location: ci
+makefile_location: toolchain/makers
 name: CoffeeImGui
 platforms:
   android:
@@ -39,7 +39,7 @@ platforms:
   windows:
   - win32
   - uwp
-script_location: ci
+script_location: toolchain/ci
 secrets:
   appveyor: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
 template_location: cmake/Templates
