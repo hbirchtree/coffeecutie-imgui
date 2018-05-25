@@ -1,9 +1,9 @@
 after_success:
-- ci/travis-deploy.sh
+- toolchain/ci/travis-deploy.sh
 apt:
   update: true
 before_script:
-- ci/travis-deps.sh
+- toolchain/ci/travis-deps.sh
 branches:
   only:
   - master
@@ -13,7 +13,7 @@ compiles:
 dist: trusty
 env:
   global:
-  - MAKEFILE_DIR=ci
+  - MAKEFILE_DIR=toolchain/makers
   - DEPENDENCIES=hbirchtree/coffeecutie%
   - CONFIGURATION=Debug
   matrix:
@@ -64,7 +64,7 @@ os:
 - linux
 - osx
 script:
-- ci/travis-build.sh
+- toolchain/ci/travis-build.sh
 services:
 - docker
 sudo: required

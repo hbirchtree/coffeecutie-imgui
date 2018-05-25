@@ -1,5 +1,5 @@
 before_build:
-- ps: ci\appveyor-build.ps1
+- ps: toolchain\ci\appveyor-build.ps1
 before_deploy:
 - cmd: cmake.exe --build %BUILD_DIR% --target install --config %CONFIGURATION%
 branches:
@@ -17,7 +17,7 @@ clone_script:
 configuration:
 - Debug
 deploy_script:
-- ps: ci\appveyor-deploy.ps1
+- ps: toolchain\ci\appveyor-deploy.ps1
 environment:
   BUILD_DIR: C:\projects\%APPVEYOR_PROJECT_SLUG%
   CMAKE_BIN: cmake.exe
@@ -25,7 +25,7 @@ environment:
   DEPLOY_PATTERNS: ''
   GITHUB_TOKEN:
     secure: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
-  MAKEFILE_DIR: ci
+  MAKEFILE_DIR: toolchain\makers
   NOBUILD: 1
   SAME_BUILD_DIR: 1
   SOURCE_DIR: C:\projects\%APPVEYOR_PROJECT_SLUG%\src
@@ -36,7 +36,7 @@ image:
 - Visual Studio 2015
 - Visual Studio 2017
 install:
-- ps: ci\appveyor-deps.ps1
+- ps: toolchain\ci\appveyor-deps.ps1
 matrix:
   allow_failures:
   - BUILDVARIANT: maemo.armel
