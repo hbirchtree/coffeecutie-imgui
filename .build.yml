@@ -11,22 +11,19 @@ branches:
   name: testing
 coverage: false
 dependencies:
-  hbirchtree/coffeecutie: automated-release-4.2.16.0.2-27-gaf564e4
+  hbirchtree/coffeecutie: automated-release-4.2.16.0.2-81-gd6d2304
 display_name: Coffee Imgui
 makefile_location: toolchain/makers
 name: CoffeeImGui
 platforms:
   android:
   - armv7a.kitkat.gles2
-  - armv7a.nougat.gles2
   - armv8a.nougat.gles3
   emscripten:
   - asmjs
   - wasm
   fedora:
   - amd64
-  maemo:
-  - armel
   osx:
   - osx
   - ios.x86_64

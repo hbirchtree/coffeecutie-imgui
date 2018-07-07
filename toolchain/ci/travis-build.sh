@@ -1,7 +1,13 @@
 #!/bin/bash
 
+#######################################
+# For potential issues with create directories
+#######################################
 umask 000
 
+#######################################
+# General variables
+#######################################
 SOURCE_DIR="$PWD"
 BUILD_DIR="$SOURCE_DIR/multi_build"
 
@@ -9,9 +15,15 @@ CI_DIR="$SOURCE_DIR/$MAKEFILE_DIR"
 
 COFFEE_DIR="$BUILD_DIR/coffee_lib"
 
+#######################################
+# Create build directory and go to it
+#######################################
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
+#######################################
+# Export for scripts
+#######################################
 export BUILDVARIANT
 export MANUAL_DEPLOY
 export MANUAL_CONTEXT
@@ -21,11 +33,13 @@ MAKEFILE="Makefile.linux"
 
 INFOPY="$SOURCE_DIR/toolchain/buildinfo.py"
 
+#######################################
+# Retrieve script location relative to source dir
+#######################################
 SCRIPT_DIR="$SOURCE_DIR/$($INFOPY --source-dir $SOURCE_DIR script_location)"
 
 HELPER="$SCRIPT_DIR/travis-helper.py"
 GITHUBPY="$SCRIPT_DIR/github_api.py"
-
 
 function die()
 {
@@ -81,7 +95,7 @@ function download_libraries()
 
     notify "Using release $LATEST_RELEASE for $slug"
     local CURRENT_ASSET="$(github_api list asset ${slug}:${LATEST_RELEASE} | grep "libraries_${2}.tar.gz" | head -1)"
-    echo Asset $CURRENT_ASSET
+    #echo Asset $CURRENT_ASSET
 
     [[ -z $CURRENT_ASSET ]] && die "Failed to find ${slug} for $2"
 
@@ -102,30 +116,86 @@ function download_libraries()
     cd "$PREV_WD"
 }
 
+function container_run()
+{
+    case "${TRAVIS_OS_NAME}" in
+    "linux")
+        local CONTAINER_DATA=`grep "^$2:" "$CI_DIR/$MAKEFILE" -A 5 | grep 'DOCKER_CONTAINER\|DOCKER_CONFIG'`
+
+        if [ -z `echo $CONTAINER_DATA | grep DOCKER_CONTFIG` ]; then
+            make -s -f $CI_DIR/Makefile.multi custom -e CUSTOM_COMMAND="$1" -e DOCKER_CONFIG=`echo $CONTAINER_DATA | cut -d '"' -f 2`
+        else
+            make -s -f $CI_DIR/Makefile.multi custom -e CUSTOM_COMMAND="$1" -e DOCKER_CONTAINER=`echo $CONTAINER_DATA | cut -d '"' -f 2`
+        fi
+
+    ;;
+    "osx")
+        $@
+    ;;
+    esac
+}
+
 function build_standalone()
 {
+    #####################################################
+    # First get the dependencies, which we will download
+    #####################################################
     OLD_IFS=$IFS
     IFS='%'
     for dep in $DEPENDENCIES; do
         [ -z $NODEPS ] && IFS=$OLD_IFS download_libraries "$dep" "$1"
     done
 
+    #####################################################
+    # Set some default targets
+    #####################################################
     [ -z $CONFIGURATION ] && export CONFIGURATION=Debug
     [ -z $CMAKE_TARGET ] && export CMAKE_TARGET=install
     [ ! -z $TRAVIS ] && sudo chmod -R 777 "$SOURCE_DIR" "$COFFEE_DIR" "$BUILD_DIR"
     [ -z $GENERATE_PROGRAMS ] && export GENERATE_PROGRAMS=ON
 
+    if [ ! -z $TRAVIS ]; then
+        echo "#####################################################"
+        echo "#### Program versions ###############################"
+        echo "#####################################################"
+
+        container_run "cmake --version" "$1"
+        #container_run "clang --version"
+        #container_run "clang++ --version"
+        #container_run "gcc --version"
+        #container_run "g++ --version"
+        #container_run "ld --version"
+        tar --version
+
+        echo "#####################################################"
+        echo "#####################################################"
+        echo "#####################################################"
+
+        echo
+        echo
+    fi
+
+    #####################################################
+    # This invokes the build
+    # Docker configuration and similar is auto-generated
+    #####################################################
     make -f "$CI_DIR/$MAKEFILE" \
         -e SOURCE_DIR="$SOURCE_DIR" \
         -e BUILD_TYPE="$CONFIGURATION" \
-        -e COFFEE_DIR="$COFFEE_DIR" $@ \
+        -e COFFEE_DIR="$COFFEE_DIR" \
         -e CMAKE_TARGET="$CMAKE_TARGET" \
-        -e GENERATE_PROGRAMS="$GENERATE_PROGRAMS"
+        -e GENERATE_PROGRAMS="$GENERATE_PROGRAMS" \
+        $@
 
     # We want to exit if the Make process fails horribly
     # Should also signify to Travis/CI that something went wrong
+    # We will also submit status to Firebase
     EXIT_STAT=$?
+    [[ ! "$EXIT_STAT" = 0 ]] && [[ ! -z $FIREBASE_ENDPOINT ]] && $CI_DIR/../firebase-submit-report.sh "$EXIT_STAT"
     [[ ! "$EXIT_STAT" = 0 ]] && die "Make process failed"
+
+    echo
+    echo
 }
 
 function main()
@@ -156,6 +226,9 @@ function main()
     [ ! -z $NODEPLOY ] && exit 0
     [ ! -z $TRAVIS ] && sudo chown -R $(whoami) ${BUILD_DIR}
 
+    #######################################
+    # Package binaries and libraries separately
+    #######################################
     tar -zcvf "$LIB_ARCHIVE" -C ${BUILD_DIR} \
             --exclude=build/*/bin \
             --exclude=build/*/packaged \

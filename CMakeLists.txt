@@ -47,14 +47,15 @@ coffee_library (
     TARGET CoffeeImGui
     SOURCES ${SRCS} 
     LIBRARIES ${LIBS}
-    HEADER_DIRS "${CMAKE_SOURCE_DIR}/include/coffee/imgui"
+    HEADER_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/imgui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
     )
 
-target_include_directories ( CoffeeImGui
+target_compile_definitions ( CoffeeImGui
     PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/imgui/>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include/>
+    -DCOFFEE_IMGUI_VERSION="${COFFEE_BUILD_STRING}"
     )
 
 coffee_application (

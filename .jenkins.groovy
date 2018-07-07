@@ -1,4 +1,4 @@
-def linux_targets = ['ubuntu.amd64', 'steam.amd64', 'maemo.armel', 'fedora.amd64', 'emscripten.wasm', 'emscripten.asmjs', 'android.armv8a.nougat.gles3', 'android.armv7a.nougat.gles2', 'android.armv7a.kitkat.gles2', ]
+def linux_targets = ['ubuntu.amd64', 'steam.amd64', 'fedora.amd64', 'emscripten.wasm', 'emscripten.asmjs', 'android.armv8a.nougat.gles3', 'android.armv7a.kitkat.gles2', ]
 def osx_targets = ['osx', 'ios.x86_64', ]
 def windows_targets = ['win32.amd64', 'uwp.amd64', ]
 
@@ -26,9 +26,6 @@ void GetSourceStep(job, repoUrl, srcDir)
                 branch('${GH_BRANCH}')
                 extensions {
                     relativeTargetDirectory(srcDir)
-                    submoduleOptions {
-                        recursive(true)
-                    }
                     cloneOptions {
                         shallow(true)
                     }
@@ -47,6 +44,12 @@ void GetBuildStep(job, srcDir, platform, targetLabel, target)
             environmentVariables {
                 env('BUILDVARIANT', target)
             }
+        }
+    }
+
+    job.with {
+        steps {
+            shell("git -C \"${srcDir}\" submodule update --init --recursive")
         }
     }
 

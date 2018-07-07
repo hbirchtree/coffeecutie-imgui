@@ -58,11 +58,8 @@ function(COFFEE_APPLICATION)
         BUNDLE_LICENSES
         )
     set ( switches
-        # Whether to automatically include ASIO
-        # Does not fail when ASIO is not built
-        # This is used for automatic inclusion of profiler report code
-        # Defines FEATURE_USE_ASIO when present
-        USE_ASIO
+        # Indicates building a console application. Mostly used on OSX to
+        #  disable building as .app. Will output plain binary on OSX.
         USE_CMD
         )
 
@@ -146,7 +143,7 @@ function(COFFEE_APPLICATION)
             "bin/${CMAKE_LIBRARY_ARCHITECTURE}"
             )
 
-        if(COFFEE_GENERATE_APPIMAGE)
+        if(GENERATE_APPIMAGE)
             APPIMAGE_PACKAGE(
                 ${APP_TARGET}
                 "${APP_TITLE}"
@@ -155,7 +152,7 @@ function(COFFEE_APPLICATION)
                 "${APP_BUNDLE_LIBRARIES}"
                 "${ICON_ASSET}" )
         endif()
-        if(COFFEE_GENERATE_FLATPAK)
+        if(GENERATE_FLATPAK)
             FLATPAK_PACKAGE(
                 ${APP_TARGET}
                 "${APP_PACKAGE_PREFIX}" "${APP_TITLE}"
@@ -165,7 +162,7 @@ function(COFFEE_APPLICATION)
                 "" "${APP_BUNDLE_LIBRARIES}"
                 "${ICON_ASSET}" )
         endif()
-        if(COFFEE_GENERATE_SNAPPY)
+        if(GENERATE_SNAPPY)
             SNAPPY_PACKAGE(
                 ${APP_TARGET}
                 "${APP_TITLE}" "${APP_INFO_STRING}"
@@ -192,18 +189,6 @@ function(COFFEE_APPLICATION)
 
             DESTINATION
             "bin/${CMAKE_LIBRARY_ARCHITECTURE}"
-            )
-    endif()
-
-    # A little convenience
-    if(APP_USE_ASIO AND TARGET CoffeeASIO)
-        target_compile_definitions( ${APP_TARGET}
-            PRIVATE
-            -DFEATURE_USE_ASIO
-            )
-        target_link_libraries ( ${APP_TARGET}
-            PRIVATE
-            CoffeeASIO
             )
     endif()
 

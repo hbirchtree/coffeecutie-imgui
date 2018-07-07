@@ -10,10 +10,13 @@
 // https://github.com/ocornut/imgui
 
 #include <CoffeeDef.h>
-#include <coffee/core/CDebug>
 #include <coffee/core/platform_data.h>
+#include <coffee/core/types/cdef/memsafe.h>
 #include <coffee/graphics/apis/CGLeamRHI>
 #include <coffee/imgui/imgui_binding.h>
+#include <coffee/interfaces/cgraphics_util.h>
+
+#include <coffee/core/CDebug>
 
 #define IM_API "ImGui::"
 
@@ -70,29 +73,25 @@ STATICINLINE C_MAYBE_UNUSED u32 ImToCfKey(ImGuiKey k)
     return 0;
 }
 
-// Data
-static double g_Time = 0.0;
-// static bool         g_MousePressed[3] = { false, false, false };
-static float  g_MouseWheel  = 0.0f;
-static GLuint g_FontTexture = 0;
-// static int          g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
-// static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
-// static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0,
-// g_AttribLocationColor = 0;  static unsigned int g_VboHandle = 0, g_VaoHandle
-// = 0, g_ElementsHandle = 0;
-
 struct ImGuiData
 {
     ImGuiData() :
         attributes(), pipeline(),
         vertices(ResourceAccess::Streaming | ResourceAccess::WriteOnly, 0),
         elements(ResourceAccess::Streaming | ResourceAccess::WriteOnly, 0),
-        fonts(PixFmt::RGBA8)
+        fonts(PixFmt::RGBA8), shader_view(pipeline)
     {
         fonts_sampler.attach(&fonts);
     }
     ~ImGuiData()
     {
+        RHI::GLEAM::gleam_error ec;
+        vertices.dealloc();
+        elements.dealloc();
+        attributes.dealloc();
+        pipeline.dealloc(ec);
+        fonts.dealloc();
+        fonts_sampler.dealloc();
     }
 
     GFX::V_DESC attributes;
@@ -100,11 +99,15 @@ struct ImGuiData
     GFX::BUF_A  vertices;
     GFX::BUF_E  elements;
 
-    GFX::UNIFDESC u_tex;
-    GFX::UNIFDESC u_xf;
-
     GFX::S_2D  fonts;
     GFX::SM_2D fonts_sampler;
+
+    RHI::shader_param_view<GFX> shader_view;
+
+    Matf4 projection_matrix;
+
+    f32 time;
+    f32 scroll;
 };
 
 static UqPtr<ImGuiData> im_data = nullptr;
@@ -130,6 +133,7 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 
     GFX::BLNDSTATE blend;
     blend.m_doBlend = true;
+    //    blend.m_additive = true;
     GFX::RASTSTATE raster;
     raster.m_culling = 0;
     GFX::DEPTSTATE depth;
@@ -143,9 +147,6 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
     GFX::SetRasterizerState(raster);
     GFX::SetDepthState(depth);
 
-    GFX::USTATE v_state;
-    GFX::USTATE f_state;
-
     const float ortho_projection[4][4] = {
         {2.0f / io.DisplaySize.x, 0.0f, 0.0f, 0.0f},
         {0.0f, 2.0f / -io.DisplaySize.y, 0.0f, 0.0f},
@@ -153,19 +154,12 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
         {-1.0f, 1.0f, 0.0f, 1.0f},
     };
 
-    Bytes xf_data = {
-        C_FCAST<u8*>(ortho_projection), sizeof(ortho_projection), 0};
-    GFX::UNIFVAL xf_value;
-    auto         handle = im_data->fonts_sampler.handle();
-    xf_value.data       = &xf_data;
+    auto target = Bytes::From(im_data->projection_matrix);
+    auto source = Bytes::From(C_RCAST<const float*>(ortho_projection), 16);
 
-    v_state.setUniform(im_data->u_xf, &xf_value);
-    f_state.setSampler(im_data->u_tex, &handle);
+    MemCpy(source, target);
 
-    GFX::PSTATE pipstate = {{ShaderStage::Vertex, &v_state},
-                            {ShaderStage::Fragment, &f_state}};
-
-    glBlendEquation(GL_FUNC_ADD);
+    //    glBlendEquation(GL_FUNC_ADD);
 
     GFX::D_CALL dc(true, false);
     GFX::D_DATA dd;
@@ -196,11 +190,14 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
                                       (int)(cmd->ClipRect.z - cmd->ClipRect.x),
                                       (int)(cmd->ClipRect.w - cmd->ClipRect.y)};
                 GFX::SetViewportState(view_);
-                handle.glTexHandle() = ExtractIntegerPtr<u32>(cmd->TextureId);
                 /* TODO: Improve this by using batching structure,
                  *  D_DATA arrays */
                 GFX::Draw(
-                    im_data->pipeline, pipstate, im_data->attributes, dc, dd);
+                    im_data->pipeline,
+                    im_data->shader_view.get_state(),
+                    im_data->attributes,
+                    dc,
+                    dd);
             }
             dd.m_eoff += cmd->ElemCount;
         }
@@ -231,15 +228,15 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
     int            width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-    auto pixelDataSize = GetPixSize(BitFmt::UByte, PixCmp::RGBA, width * height);
+    auto pixelDataSize =
+        GetPixSize(BitFmt::UByte, PixCmp::RGBA, width * height);
 
     auto& s  = im_data->fonts;
     auto& sm = im_data->fonts_sampler;
 
     s.allocate({width, height}, PixCmp::RGBA);
     s.upload(
-        BitFmt::UByte,
-        PixCmp::RGBA,
+        {s.m_pixfmt, BitFmt::UByte, PixCmp::RGBA},
         {width, height},
         Bytes::From(pixels, pixelDataSize));
 
@@ -296,6 +293,8 @@ bool Coffee::CImGui::CreateDeviceObjects()
 
     im_data = UqPtr<ImGuiData>(new ImGuiData);
 
+    im_data->time = 0.f;
+
     u32 attr_idx[3] = {};
 
     do
@@ -338,22 +337,24 @@ bool Coffee::CImGui::CreateDeviceObjects()
 
         cDebug("Shader pipeline is assembled");
 
-        Vector<GFX::UNIFDESC> unifs;
-        Vector<GFX::PPARAM>   params;
-
         Profiler::DeepPushContext(IM_API "Getting shader properties");
-        GFX::GetShaderUniformState(pip, &unifs, &params);
+        im_data->shader_view.get_pipeline_params();
+        //        GFX::GetShaderUniformState(pip, &unifs, &params);
         Profiler::DeepPopContext();
 
-        for(auto const& unif : unifs)
+        for(auto const& unif : im_data->shader_view.constants())
         {
             if(unif.m_name == "Texture")
-                im_data->u_tex = unif;
+                im_data->shader_view.set_sampler(
+                    unif, im_data->fonts_sampler.handle());
             if(unif.m_name == "ProjMtx")
-                im_data->u_xf = unif;
+                im_data->shader_view.set_constant(
+                    unif, Bytes::Create(im_data->projection_matrix));
         }
 
-        for(auto const& attr : params)
+        im_data->shader_view.build_state();
+
+        for(auto const& attr : im_data->shader_view.params())
         {
             if(attr.m_name == "Position")
                 attr_idx[0] = attr.m_idx;
@@ -635,7 +636,7 @@ void Coffee::CImGui::NewFrame(
     WindowManagerClient& window, EventApplication& event)
 {
     DProfContext _(IM_API "Preparing frame data");
-    if(!g_FontTexture)
+    if(!im_data || !im_data->pipeline.pipelineHandle())
         CreateDeviceObjects();
 
     ImGuiIO& io = ImGui::GetIO();
@@ -649,10 +650,10 @@ void Coffee::CImGui::NewFrame(
     io.DisplayFramebufferScale = ImVec2(uiScaling, uiScaling);
 
     // Setup time step
-    auto time    = event.contextTime();
-    io.DeltaTime = g_Time > 0.0 ? C_CAST<float>(time - g_Time)
-                                : C_CAST<float>(1.0f / 60.0f);
-    g_Time = time;
+    f32 time     = C_CAST<f32>(event.contextTime());
+    io.DeltaTime = im_data->time > 0.0f ? C_CAST<f32>(time - im_data->time)
+                                        : C_CAST<f32>(1.0f / 60.0f);
+    im_data->time = time;
 
     // Setup inputs
 #if !defined(COFFEE_ANDROID) && !defined(COFFEE_APPLE_MOBILE)
@@ -662,8 +663,8 @@ void Coffee::CImGui::NewFrame(
     io.MouseDown[CIMouseButtonEvent::LeftButton - 1] = false;
 #endif
 
-    io.MouseWheel = g_MouseWheel;
-    g_MouseWheel  = 0.0f;
+    io.MouseWheel   = im_data->scroll;
+    im_data->scroll = 0.0f;
 
     // Start the frame
     DProfContext __(IM_API "Running ImGui::NewFrame()");

@@ -65,6 +65,7 @@ void setup(R& r, RData* data)
 
 void loop(R& r, RData* data)
 {
+    GFX::DefaultFramebuffer().use(FramebufferT::All);
     GFX::DefaultFramebuffer().clear(0, {0.2f, 0.2f, 0.3f, 1.0});
 
     bool enable_gui_now = data->display_gui;
@@ -131,10 +132,7 @@ void cleanup(R&, RData* data)
 
 int32 coffeeimgui_main(int32, cstring_w*)
 {
-    CResources::FileResourcePrefix("coffeeimgui/");
-    ApplicationData();
-
-    cDebug("Hello World!");
+    RuntimeQueue::CreateNewQueue("ImGui");
 
     auto disable_imgui = [](void* u, CIEvent const& ev, c_cptr data)
     {
