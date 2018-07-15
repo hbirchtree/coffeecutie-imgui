@@ -5,9 +5,11 @@ include( toolchain/cmake/Modules/SubprojectFunctions.cmake )
 init_subproject()
 
 find_package ( StandardLibs REQUIRED )
-if(COFFEE_BUILD_SDL2)
+
+if(TARGET CoffeeSDL2)
     find_package ( SDL2 REQUIRED )
 endif()
+
 import_coffee_lib ( Coffee REQUIRED )
 
 set ( IMGUI_DIR
