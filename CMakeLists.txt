@@ -11,65 +11,11 @@ endif()
 import_coffee_lib ( Coffee REQUIRED )
 
 set ( IMGUI_DIR
-    ${CMAKE_SOURCE_DIR}/libs/imgui
+    ${CMAKE_SOURCE_DIR}/src/libs/imgui
     )
 
-set ( SRCS
-    src/imgui_binding.cpp
-    ${IMGUI_DIR}/imgui.cpp
-    ${IMGUI_DIR}/imgui_draw.cpp
-    )
+add_subdirectory(src/imgui)
 
-list ( APPEND SRCS
-    ${IMGUI_DIR}/imgui_demo.cpp
-    )
-
-set ( LIBS
-    CoffeeCore; CoffeeRenderer_Default;
-    CoffeeGLeamRHI;
-    )
-
-set ( PERMS
-    OPENGL;AUDIO;ENVIRONMENT_SENSORS;NETWORK_CONNECT;JOYSTICK
-    )
-
-include_directories (
-    ${Coffee_INCLUDE_DIRS}
-    )
-
-add_definitions(
-	-DCOFFEE_IMGUI_USE_GLEAM
-	-DIMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCS
-	-DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCS
-	)
-
-coffee_library ( 
-    TARGET CoffeeImGui
-    SOURCES ${SRCS} 
-    LIBRARIES ${LIBS}
-    HEADER_DIRS
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/imgui>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    )
-
-target_compile_definitions ( CoffeeImGui
-    PUBLIC
-    -DCOFFEE_IMGUI_VERSION="${COFFEE_BUILD_STRING}"
-    )
-
-coffee_application (
-    TARGET CoffeeImGuiTest
-    TITLE "Coffee ImGui Test"
-    COMPANY "Coffee"
-    VERSIONC_DE "1"
-    SOURCES src/main.cpp
-    LIBRARIES CoffeeImGui
-    PERMISSIONS ${PERMS}
-    )
-
-coffee_bundle_includes( ${CMAKE_SOURCE_DIR}/include )
-coffee_bundle_header ( ${CMAKE_SOURCE_DIR}/libs/imgui/imgui.h )
-coffee_bundle_header ( ${CMAKE_SOURCE_DIR}/libs/imgui/imconfig.h )
+add_subdirectory(examples/basic)
 
 End_Subproject()

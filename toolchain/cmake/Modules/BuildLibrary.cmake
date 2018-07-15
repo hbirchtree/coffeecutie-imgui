@@ -177,7 +177,7 @@ macro(COFFEE_LIBRARY)
                     ${HEADER_DIR}/*
                     )
             else()
-                message ( FATAL_ERROR "No header directory: ${HEAD_DIR}" )
+                message ( FATAL_ERROR "No header directory: ${HEAD_DIR} (${HEADER_DIR})" )
             endif()
         endif()
     endforeach()
@@ -225,6 +225,7 @@ macro(COFFEE_LIBRARY)
         PUBLIC
         ${LIB_LIBRARIES}
         )
+
     target_compile_definitions ( ${LIB_TARGET}
         PRIVATE
         -DCOFFEE_APPLICATION_LIBRARY
@@ -237,20 +238,6 @@ macro(COFFEE_LIBRARY)
         )
 
     add_export ( ${LIB_TARGET} "${LIB_HEADER_DIRS}" )
-
-#    coffee_add_framework(
-#        "${LIB_TARGET}"
-#        "${LIB_LINKAGE}"
-#        "${LIB_VERSION_CODE}"
-#        "${LIB_COPYRIGHT}"
-#        "${LIB_COMPANY}"
-#        "${LIB_SOURCES}"
-#        "${LIB_HEADER_DIRS}"
-#        "${LIB_RESOURCES}"
-#        "${LIB_BUNDLE_HEADERS}"
-#        "${LIB_LIBRARIES}"
-#        "${LIB_BUNDLE_LIBRARIES}"
-#        )
 
 endmacro()
 

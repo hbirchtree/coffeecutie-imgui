@@ -77,9 +77,9 @@ struct ImGuiData
 {
     ImGuiData() :
         attributes(), pipeline(),
-        vertices(ResourceAccess::Streaming | ResourceAccess::WriteOnly, 0),
-        elements(ResourceAccess::Streaming | ResourceAccess::WriteOnly, 0),
-        fonts(PixFmt::RGBA8), shader_view(pipeline)
+        vertices(RSCA::Streaming | RSCA::WriteOnly, 0),
+        elements(RSCA::Streaming | RSCA::WriteOnly, 0), fonts(PixFmt::RGBA8),
+        shader_view(pipeline)
     {
         fonts_sampler.attach(&fonts);
     }
