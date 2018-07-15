@@ -85,7 +85,7 @@ struct ImGuiData
     }
     ~ImGuiData()
     {
-        RHI::GLEAM::gleam_error ec;
+        GFX::ERROR ec;
         vertices.dealloc();
         elements.dealloc();
         attributes.dealloc();

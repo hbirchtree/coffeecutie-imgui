@@ -11,7 +11,7 @@ branches:
   name: testing
 coverage: false
 dependencies:
-  hbirchtree/coffeecutie: automated-release-4.2.16.0.2-89-g400c23a
+  hbirchtree/coffeecutie: automated-release-4.3.0.0.1
 display_name: Coffee Imgui
 makefile_location: toolchain/makers
 name: CoffeeImGui
@@ -41,9 +41,9 @@ secrets:
   appveyor: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
 template_location: cmake/Templates
 version:
-  hotfix: 3
+  hotfix: 0
   major: 0
   minor: 9
-  patch: 12
-  release: 9
+  patch: 0
+  release: 10
 versionprefix: v
