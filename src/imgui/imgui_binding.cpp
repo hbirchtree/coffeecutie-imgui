@@ -243,7 +243,7 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
     sm.alloc();
     sm.setFiltering(Filtering::Linear, Filtering::Linear);
 
-    io.Fonts->TexID = FitIntegerInPtr(s.glTexHandle());
+    io.Fonts->TexID = Mem::FitIntegerInPtr(s.glTexHandle());
 }
 
 bool Coffee::CImGui::CreateDeviceObjects()

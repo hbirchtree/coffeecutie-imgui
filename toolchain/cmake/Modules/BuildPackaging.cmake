@@ -56,6 +56,9 @@ function(COFFEE_APPLICATION)
         BUNDLE_BINARIES
         # For licenses, will be merged into binary
         BUNDLE_LICENSES
+
+        # Protocol schemes to register the application with
+        SCHEMES
         )
     set ( switches
         # Indicates building a console application. Mostly used on OSX to
@@ -95,14 +98,21 @@ function(COFFEE_APPLICATION)
 
     if(ANDROID)
         ANDROIDAPK_PACKAGE(
-            "${APP_TARGET}"
-            "${APP_PACKAGE_PREFIX}"
-            "${APP_TITLE}" "${APP_VERSION_CODE}"
-            "${APP_COPYRIGHT}" "${APP_COMPANY}"
-            "${SOURCES_MOD}"
-            "${APP_RESOURCES}"
-            "${APP_BUNDLE_LIBRARIES}"
-            "${ICON_ASSET}" )
+            TARGET "${APP_TARGET}"
+
+            TITLE "${APP_TITLE}"
+            DOM_NAME "${APP_PACKAGE_PREFIX}"
+            VERSION_CODE "${APP_VERSION_CODE}"
+            COPYRIGHT "${APP_COPYRIGHT}"
+            COMPANY "${APP_COMPANY}"
+
+            SOURCES ${SOURCES_MOD}
+            RESOURCES ${APP_RESOURCES}
+            BUNDLE_LIBRARIES ${APP_BUNDLE_LIBRARIES}
+
+            APK_TARGET 27
+            APK_MIN_TARGET ${ANDROID_NATIVE_API_LEVEL}
+            )
     elseif(WIN32)
         WINPE_PACKAGE(
             ${APP_TARGET}
@@ -143,6 +153,33 @@ function(COFFEE_APPLICATION)
             "bin/${CMAKE_LIBRARY_ARCHITECTURE}"
             )
 
+        file ( WRITE "${CMAKE_CURRENT_BINARY_DIR}/${APP_TARGET}.desktop"
+"[Desktop Entry]
+Version=1.0
+Type=Application
+Name=${APP_TITLE}
+Comment=${APP_TITLE}
+Icon=coffee-${APP_TARGET}
+Categories=Game;
+Terminal=false
+Exec=${APP_TARGET} %s
+StartupNotify=true
+StartupWMClass=${APP_TARGET}
+"
+            )
+
+        set ( XDG_SCHEMES )
+
+        foreach ( SCHEME ${APP_SCHEMES} )
+            set ( XDG_SCHEMES "x-scheme-handler/${SCHEME}\;${XDG_SCHEMES}" )
+        endforeach()
+
+        if( NOT "${XDG_SCHEMES}" STREQUAL "" )
+            file ( APPEND "${CMAKE_CURRENT_BINARY_DIR}/${APP_TARGET}.desktop"
+                "MimeType=${XDG_SCHEMES}\n"
+                )
+        endif()
+
         if(GENERATE_APPIMAGE)
             APPIMAGE_PACKAGE(
                 ${APP_TARGET}
@@ -177,7 +214,7 @@ function(COFFEE_APPLICATION)
         endif()
     elseif(GAMECUBE OR WII)
         GAMECUBE_PACKAGE(
-            TARGET ${APP_TARGET}
+            TARGET "${APP_TARGET}"
             SOURCES ${SOURCES_MOD}
             )
     else()
