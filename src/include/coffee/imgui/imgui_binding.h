@@ -3,6 +3,8 @@
 #include <coffee/core/base/renderer/eventapplication.h>
 #include <coffee/core/base/renderer/windowmanagerclient.h>
 #include <coffee/core/types/tdef/integertypes.h>
+#include <coffee/core/plat/plat_sysinfo.h>
+#include <coffee/core/plat/plat_process.h>
 
 #include <imgui.h>
 

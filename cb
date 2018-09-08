@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BUILD_CI=${BUILD_CI:-}
+
 BASE_DIR=$(readlink -f $(dirname ${0}))
 TC_DIR=${BASE_DIR}/toolchain
 
@@ -14,7 +16,11 @@ function all_source_files()
 
 case $1 in
 "quick-build")
-    ${TC_DIR}/quick-build.sh ${@:2}
+    if [ -z $BUILD_CI ]; then
+        ${TC_DIR}/quick-build.sh ${@:2}
+    else
+        BUILDVARIANT=${@:2} ${TC_DIR}/ci/travis-build.sh
+    fi
 ;;
 "ci")
     ${TC_DIR}/configure_ci.py ${@:2}
@@ -41,28 +47,9 @@ case $1 in
     ${TC_DIR}/git-gen-release.sh ${@:2}
 ;;
 "makefile-generator")
-    MAKERS_DIR=${BASE_DIR}
-    case $2 in
-    "regen")
-        case $3 in
-        "linux")
-            pushd ${TC_DIR}/makers
-            PYTHONPATH=$TC_DIR ${TC_DIR}/python/make_all.py
-            popd
-        ;;
-        *)
-            echo \
-"Options: 
-linux - Generate for Linux and OSX, despite the name"
-        ;;
-        esac
-    ;;
-    *)
-        echo \
-"Options: 
-regen - Regenerate meta-build system"
-    ;;
-    esac
+    pushd ${TC_DIR}/makers
+    PYTHONPATH=$TC_DIR ${TC_DIR}/python/make_all.py
+    popd
 ;;
 "format")
     if [ -z $CLANG_FORMAT ]; then

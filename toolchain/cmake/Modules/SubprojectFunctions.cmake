@@ -1,4 +1,7 @@
 macro( INIT_SUBPROJECT )
+
+    export ( PACKAGE ${PROJECT_NAME} )
+
     ############################################################################
     # Basic CMake configuration
     ############################################################################
@@ -182,7 +185,9 @@ macro( INIT_PROJECT )
 endmacro()
 
 macro( END_SUBPROJECT )
-    generate_findscript()
+    if(BUILD_LIBRARIES)
+        generate_findscript()
+    endif()
 endmacro()
 
 macro( END_PROJECT )

@@ -339,7 +339,6 @@ bool Coffee::CImGui::CreateDeviceObjects()
 
         Profiler::DeepPushContext(IM_API "Getting shader properties");
         im_data->shader_view.get_pipeline_params();
-        //        GFX::GetShaderUniformState(pip, &unifs, &params);
         Profiler::DeepPopContext();
 
         for(auto const& unif : im_data->shader_view.constants())

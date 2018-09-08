@@ -26,6 +26,8 @@ android:
   x86_64:
     kitkat:
       - .
+    nougat:
+      - .
 ubuntu:
   amd64:
     - .
@@ -41,6 +43,13 @@ steam:
   - amd64
 coverage:
   - .
+testing:
+  linux:
+    lowfat:
+      - debug
+      - release
+    release:
+      - .
 docs:
   - .
 emscripten:
