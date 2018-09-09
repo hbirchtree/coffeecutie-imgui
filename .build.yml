@@ -20,30 +20,29 @@ platforms:
   - armv7a.kitkat.gles2
   - armv8a.nougat.gles3
   emscripten:
-  - asmjs
   - wasm
   fedora:
   - amd64
+  ios:
+  - x86_64
   osx:
-  - osx
-  - ios.x86_64
+  - .
   steam:
   - amd64
   ubuntu:
   - amd64
-  - i686
-  - armhf
-  windows:
-  - win32
-  - uwp
+  uwp:
+  - amd64
+  win32:
+  - amd64
 script_location: toolchain/ci
 secrets:
   appveyor: 6ME8msH/BDLiEde9wCb9+GQRN4rcAzyu1Vx/wP5yHejedO3vPlrOXHiWqhjNqXrQ
 template_location: cmake/Templates
 version:
-  hotfix: 0
+  hotfix: 1
   major: 0
   minor: 9
-  patch: 1
+  patch: 2
   release: 10
 versionprefix: v
