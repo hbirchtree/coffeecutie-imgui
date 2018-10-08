@@ -11,7 +11,7 @@ branches:
   name: testing
 coverage: false
 dependencies:
-  hbirchtree/coffeecutie: automated-release-4.3.1.0.10
+  hbirchtree/coffeecutie: automated-release-4.3.1.1.0-1-g9251492
 display_name: Coffee Imgui
 makefile_location: toolchain/makers
 name: CoffeeImGui
