@@ -110,7 +110,7 @@ function(COFFEE_APPLICATION)
             RESOURCES ${APP_RESOURCES}
             BUNDLE_LIBRARIES ${APP_BUNDLE_LIBRARIES}
 
-            APK_TARGET 27
+            APK_TARGET 28
             APK_MIN_TARGET ${ANDROID_NATIVE_API_LEVEL}
             )
     elseif(WIN32)
@@ -232,14 +232,21 @@ StartupWMClass=${APP_TARGET}
     target_compile_definitions ( ${APP_TARGET}
         PRIVATE
         -DCOFFEE_COMPONENT_NAME="${APP_TARGET}"
+        -DCOFFEE_COMPILE_APPLICATION=1
         )
 
     target_enable_cxx11(${APP_TARGET})
 
+    set ( CORE_APP_LIB Coffee::CoreApplication )
+
+    if("${PROJECT_NAME}" STREQUAL "Coffee")
+        set ( CORE_APP_LIB CoreApplication )
+    endif()
+
     target_link_libraries ( ${APP_TARGET}
         PUBLIC
         ${APP_LIBRARIES}
-        CoffeeCore_Application
+        ${CORE_APP_LIB}
         )
 
 endfunction()

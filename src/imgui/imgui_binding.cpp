@@ -9,12 +9,18 @@
 // examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
-#include <CoffeeDef.h>
+#include <coffee/core/base.h>
 #include <coffee/core/platform_data.h>
-#include <coffee/core/types/cdef/memsafe.h>
+#include <coffee/core/types/chunk.h>
+#include <coffee/core/types/input/keymap.h>
 #include <coffee/graphics/apis/CGLeamRHI>
 #include <coffee/imgui/imgui_binding.h>
 #include <coffee/interfaces/cgraphics_util.h>
+#include <peripherals/libc/memory_ops.h>
+
+#include <coffee/graphics/apis/gleam/levels/all_levels.h>
+
+#include <coffee/strings/libc_types.h>
 
 #include <coffee/core/CDebug>
 
@@ -22,6 +28,7 @@
 
 using namespace Coffee;
 using namespace Display;
+using namespace Input;
 
 #if defined(COFFEE_IMGUI_USE_GLEAM)
 using GFX = RHI::GLEAM::GLEAM_API;
@@ -51,7 +58,7 @@ static const Vector<Pair<ImGuiKey_, u16>> ImKeyMap = {
     {ImGuiKey_Z, CK_z},
 };
 
-STATICINLINE C_MAYBE_UNUSED ImGuiKey CfToImKey(u32 k)
+C_UNUSED(STATICINLINE ImGuiKey CfToImKey(u32 k))
 {
     auto it = std::find_if(
         ImKeyMap.begin(), ImKeyMap.end(), [k](Pair<ImGuiKey_, u16> const& p) {
@@ -62,7 +69,7 @@ STATICINLINE C_MAYBE_UNUSED ImGuiKey CfToImKey(u32 k)
     return 0;
 }
 
-STATICINLINE C_MAYBE_UNUSED u32 ImToCfKey(ImGuiKey k)
+C_UNUSED(STATICINLINE u32 ImToCfKey(ImGuiKey k))
 {
     auto it = std::find_if(
         ImKeyMap.begin(), ImKeyMap.end(), [k](Pair<ImGuiKey_, u16> const& p) {
@@ -73,44 +80,46 @@ STATICINLINE C_MAYBE_UNUSED u32 ImToCfKey(ImGuiKey k)
     return 0;
 }
 
-struct ImGuiData
+struct ImGuiData : State::GlobalState
 {
     ImGuiData() :
         attributes(), pipeline(),
         vertices(RSCA::Streaming | RSCA::WriteOnly, 0),
-        elements(RSCA::Streaming | RSCA::WriteOnly, 0), fonts(PixFmt::RGBA8),
-        shader_view(pipeline)
+        elements(RSCA::Streaming | RSCA::WriteOnly, 0), shader_view(pipeline),
+        fonts(PixFmt::RGBA8)
     {
         fonts_sampler.attach(&fonts);
     }
-    ~ImGuiData()
-    {
-        GFX::ERROR ec;
-        vertices.dealloc();
-        elements.dealloc();
-        attributes.dealloc();
-        pipeline.dealloc(ec);
-        fonts.dealloc();
-        fonts_sampler.dealloc();
-    }
+    ~ImGuiData();
 
     GFX::V_DESC attributes;
     GFX::PIP    pipeline;
     GFX::BUF_A  vertices;
     GFX::BUF_E  elements;
 
-    GFX::S_2D  fonts;
-    GFX::SM_2D fonts_sampler;
-
     RHI::shader_param_view<GFX> shader_view;
+
+    GFX::SM_2D fonts_sampler;
+    GFX::S_2D  fonts;
 
     Matf4 projection_matrix;
 
     f32 time;
     f32 scroll;
+
+    u32 _pad;
 };
 
-static UqPtr<ImGuiData> im_data = nullptr;
+ImGuiData::~ImGuiData()
+{
+    GFX::ERROR ec;
+    vertices.dealloc();
+    elements.dealloc();
+    attributes.dealloc();
+    pipeline.dealloc(ec);
+    fonts.dealloc();
+    fonts_sampler.dealloc();
+}
 
 // This is the main rendering function that you have to implement and provide to
 // ImGui (via setting up 'RenderDrawListsFn' in the ImGuiIO structure) If text
@@ -119,6 +128,8 @@ static UqPtr<ImGuiData> im_data = nullptr;
 // (0.5f,0.5f) or (0.375f,0.375f)
 static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 {
+    const auto im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
+
     // Avoid rendering when minimized, scale coordinates for retina displays
     // (screen coordinates != framebuffer coordinates)
     GFX::DBG::SCOPE a(IM_API "ImGui render");
@@ -131,11 +142,20 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
         return;
     draw_data->ScaleClipRects(io.DisplayFramebufferScale);
 
+    GFX::BLNDSTATE prev_blnd;
+    GFX::VIEWSTATE prev_view;
+    GFX::RASTSTATE prev_rast;
+    GFX::DEPTSTATE prev_dept;
+
+    GFX::GetBlendState(prev_blnd);
+    GFX::GetViewportState(prev_view);
+    GFX::GetRasterizerState(prev_rast);
+    GFX::GetDepthState(prev_dept);
+
     GFX::BLNDSTATE blend;
     blend.m_doBlend = true;
-    //    blend.m_additive = true;
     GFX::RASTSTATE raster;
-    raster.m_culling = 0;
+    raster.m_culling = C_CAST<u32>(RHI::Datatypes::Face::Front);
     GFX::DEPTSTATE depth;
     depth.m_test = false;
     GFX::VIEWSTATE view_(1);
@@ -159,14 +179,15 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 
     MemCpy(source, target);
 
-    //    glBlendEquation(GL_FUNC_ADD);
-
     GFX::D_CALL dc(true, false);
     GFX::D_DATA dd;
-    dd.m_eltype = (sizeof(ImDrawIdx) == 2) ? TypeEnum::UShort : TypeEnum::UInt;
+    dd.m_eltype =
+        (sizeof(ImDrawIdx) == 2) ? RHI::TypeEnum::UShort : RHI::TypeEnum::UInt;
 
     for(int n = 0; n < draw_data->CmdListsCount; n++)
     {
+        GFX::DBG::SCOPE _(IM_API "Command list");
+
         auto cmd_list = draw_data->CmdLists[n];
         dd.m_eoff     = 0;
 
@@ -179,16 +200,20 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
 
         for(int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
+            GFX::DBG::SCOPE _(IM_API "Command buffer");
+
             auto cmd   = &cmd_list->CmdBuffer[cmd_i];
             dd.m_elems = cmd->ElemCount;
             if(cmd->UserCallback)
                 cmd->UserCallback(cmd_list, cmd);
             else
             {
-                view_.m_scissor[0] = {(int)cmd->ClipRect.x,
-                                      (int)(fb_height - cmd->ClipRect.w),
-                                      (int)(cmd->ClipRect.z - cmd->ClipRect.x),
-                                      (int)(cmd->ClipRect.w - cmd->ClipRect.y)};
+                view_.m_scissor[0] = {
+                    C_CAST<i32>(cmd->ClipRect.x),
+                    C_CAST<i32>(fb_height - cmd->ClipRect.w),
+                    C_CAST<i32>(cmd->ClipRect.z - cmd->ClipRect.x),
+                    C_CAST<i32>(cmd->ClipRect.w - cmd->ClipRect.y)};
+
                 GFX::SetViewportState(view_);
                 /* TODO: Improve this by using batching structure,
                  *  D_DATA arrays */
@@ -204,7 +229,12 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
     }
 
     view_.m_scissor[0] = {0, 0, fb_width, fb_height};
-    GFX::SetViewportState(view_);
+    //    GFX::SetViewportState(view_);
+
+    GFX::SetViewportState(prev_view);
+    GFX::SetBlendState(prev_blnd);
+    GFX::SetRasterizerState(prev_rast);
+    GFX::SetDepthState(prev_dept);
 }
 
 static const char* ImGui_ImplSdlGL3_GetClipboardText(void*)
@@ -212,13 +242,15 @@ static const char* ImGui_ImplSdlGL3_GetClipboardText(void*)
     return nullptr;
 }
 
-static void ImGui_ImplSdlGL3_SetClipboardText(void*, const char* text)
+static void ImGui_ImplSdlGL3_SetClipboardText(void*, const char*)
 {
     //    SDL_SetClipboardText(text);
 }
 
 void ImGui_ImplSdlGL3_CreateFontsTexture()
 {
+    const auto im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
+
     DProfContext    _(IM_API "Creating font atlas");
     GFX::DBG::SCOPE a(IM_API "Create font atlas");
 
@@ -229,187 +261,23 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
     auto pixelDataSize =
-        GetPixSize(BitFmt::UByte, PixCmp::RGBA, width * height);
+        GetPixSize(BitFmt::UByte, PixCmp::RGBA, C_FCAST<u32>(width * height));
 
     auto& s  = im_data->fonts;
     auto& sm = im_data->fonts_sampler;
 
-    s.allocate({width, height}, PixCmp::RGBA);
+    auto surface_size = size_2d<i32>{width, height}.convert<u32>();
+
+    s.allocate(surface_size, PixCmp::RGBA);
     s.upload(
         {s.m_pixfmt, BitFmt::UByte, PixCmp::RGBA},
-        {width, height},
+        surface_size,
         Bytes::From(pixels, pixelDataSize));
 
     sm.alloc();
     sm.setFiltering(Filtering::Linear, Filtering::Linear);
 
-    io.Fonts->TexID = Mem::FitIntegerInPtr(s.glTexHandle());
-}
-
-bool Coffee::CImGui::CreateDeviceObjects()
-{
-    DProfContext _(IM_API "Creating device data");
-
-    constexpr cstring vertex_shader =
-#if defined(COFFEE_GLEAM_DESKTOP)
-        "#version 330\n"
-#else
-        "#version 300 es\n"
-#endif
-        "uniform mat4 ProjMtx;\n"
-        "in vec2 Position;\n"
-        "in vec2 UV;\n"
-        "in vec4 Color;\n"
-        "out vec2 Frag_UV;\n"
-        "out vec4 Frag_Color;\n"
-        "void main()\n"
-        "{\n"
-        "	Frag_UV = UV;\n"
-        "	Frag_Color = Color;\n"
-        "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
-        "}\n";
-
-    constexpr cstring fragment_shader =
-#if defined(COFFEE_GLEAM_DESKTOP)
-        "#version 330\n"
-#else
-        "#version 300 es\n"
-#endif
-        "uniform sampler2D Texture;\n"
-        "in vec2 Frag_UV;\n"
-        "in vec4 Frag_Color;\n"
-#if !defined(COFFEE_GLES20_MODE)
-        "out vec4 OutColor;\n"
-#endif
-        "void main()\n"
-        "{\n"
-        "	OutColor = Frag_Color * texture( Texture, Frag_UV.st);\n"
-        "}\n";
-
-    if(im_data)
-        return true;
-
-    GFX::DBG::SCOPE a(IM_API "Creating device data");
-
-    im_data = UqPtr<ImGuiData>(new ImGuiData);
-
-    im_data->time = 0.f;
-
-    u32 attr_idx[3] = {};
-
-    do
-    {
-        DProfContext _(IM_API "Allocating vertex objects");
-        im_data->attributes.alloc();
-        im_data->vertices.alloc();
-        im_data->elements.alloc();
-    } while(false);
-
-    do
-    {
-        DProfContext _(IM_API "Compiling shaders");
-
-        GFX::SHD vert;
-        GFX::SHD frag;
-        auto&    pip = im_data->pipeline;
-
-        auto vd = Bytes::CreateString(vertex_shader);
-        if(!vert.compile(ShaderStage::Vertex, vd))
-            cDebug(
-                "Failed to compile vertex shader, using: \n{0}", vertex_shader);
-
-        auto fd = Bytes::CreateString(fragment_shader);
-        if(!frag.compile(ShaderStage::Fragment, fd))
-            cDebug(
-                "Failed to compile fragment shader, using: \n{0}",
-                fragment_shader);
-
-        auto& vert_owned = pip.storeShader(std::move(vert));
-        auto& frag_owned = pip.storeShader(std::move(frag));
-
-        if(!pip.attach(vert_owned, ShaderStage::Vertex))
-            cDebug("Failed to attach vertex shader");
-        if(!pip.attach(frag_owned, ShaderStage::Fragment))
-            cDebug("Failed to attach fragment shader");
-
-        if(!pip.assemble())
-            cDebug("Failed to assemble shader pipeline");
-
-        cDebug("Shader pipeline is assembled");
-
-        Profiler::DeepPushContext(IM_API "Getting shader properties");
-        im_data->shader_view.get_pipeline_params();
-        Profiler::DeepPopContext();
-
-        for(auto const& unif : im_data->shader_view.constants())
-        {
-            if(unif.m_name == "Texture")
-                im_data->shader_view.set_sampler(
-                    unif, im_data->fonts_sampler.handle());
-            if(unif.m_name == "ProjMtx")
-                im_data->shader_view.set_constant(
-                    unif, Bytes::Create(im_data->projection_matrix));
-        }
-
-        im_data->shader_view.build_state();
-
-        for(auto const& attr : im_data->shader_view.params())
-        {
-            if(attr.m_name == "Position")
-                attr_idx[0] = attr.m_idx;
-            if(attr.m_name == "UV")
-                attr_idx[1] = attr.m_idx;
-            if(attr.m_name == "Color")
-                attr_idx[2] = attr.m_idx;
-        }
-    } while(false);
-
-    do
-    {
-        DProfContext _(IM_API "Creating vertex array object");
-
-        GFX::V_ATTR pos;
-        GFX::V_ATTR tex;
-        GFX::V_ATTR col;
-        auto&       a = im_data->attributes;
-
-        pos.m_idx = attr_idx[0];
-        tex.m_idx = attr_idx[1];
-        col.m_idx = attr_idx[2];
-
-        pos.m_size = tex.m_size = 2;
-        col.m_size              = 4;
-
-        pos.m_stride = tex.m_stride = col.m_stride = sizeof(ImDrawVert);
-        pos.m_off                                  = offsetof(ImDrawVert, pos);
-        tex.m_off                                  = offsetof(ImDrawVert, uv);
-        col.m_off                                  = offsetof(ImDrawVert, col);
-        col.m_type                                 = TypeEnum::UByte;
-        col.m_flags = GFX::AttributePacked | GFX::AttributeNormalization;
-
-        a.addAttribute(pos);
-        a.addAttribute(tex);
-        a.addAttribute(col);
-
-        a.bindBuffer(0, im_data->vertices);
-        a.setIndexBuffer(&im_data->elements);
-    } while(false);
-
-    ImGui_ImplSdlGL3_CreateFontsTexture();
-
-    return true;
-}
-
-void Coffee::CImGui::InvalidateDeviceObjects()
-{
-    if(im_data)
-    {
-        DProfContext    _(IM_API "Invalidating device objects");
-        GFX::DBG::SCOPE a(IM_API "Invalidating device objects");
-        im_data->vertices.dealloc();
-        im_data->elements.dealloc();
-        im_data->attributes.dealloc();
-    }
+    io.Fonts->TexID = libc::ptr::put_value(s.glTexHandle());
 }
 
 template<typename T>
@@ -595,7 +463,208 @@ static void SetStyle()
     style.Colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 }
 
-bool Coffee::CImGui::Init(WindowManagerClient&, EventApplication& event)
+namespace Coffee {
+namespace CImGui {
+
+bool CreateDeviceObjects(imgui_error_code& ec)
+{
+    DProfContext _(IM_API "Creating device data");
+
+    constexpr cstring vertex_shader =
+#if defined(COFFEE_GLEAM_DESKTOP)
+        "#version 330\n"
+#else
+        "#version 300 es\n"
+#endif
+        "uniform mat4 ProjMtx;\n"
+        "in vec2 Position;\n"
+        "in vec2 UV;\n"
+        "in vec4 Color;\n"
+        "out vec2 Frag_UV;\n"
+        "out vec4 Frag_Color;\n"
+        "void main()\n"
+        "{\n"
+        "	Frag_UV = UV;\n"
+        "	Frag_Color = Color;\n"
+        "	gl_Position = ProjMtx * vec4(Position.xy,0,1);\n"
+        "}\n";
+
+    constexpr cstring fragment_shader =
+#if defined(COFFEE_GLEAM_DESKTOP)
+        "#version 330\n"
+#else
+        "#version 300 es\n"
+#endif
+        "uniform sampler2D Texture;\n"
+        "in vec2 Frag_UV;\n"
+        "in vec4 Frag_Color;\n"
+#if !defined(COFFEE_GLES20_MODE)
+        "out vec4 OutColor;\n"
+#endif
+        "void main()\n"
+        "{\n"
+        "	OutColor = Frag_Color * texture( Texture, Frag_UV.st);\n"
+        "}\n";
+
+    auto im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
+
+    if(im_data)
+    {
+        ec = ImError::AlreadyLoaded;
+        return true;
+    }
+
+    GFX::DBG::SCOPE a(IM_API "Creating device data");
+
+    State::SwapState("im_data", MkShared<ImGuiData>());
+    im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
+
+    if(!im_data)
+    {
+        ec = ImError::GlobalStateFailure;
+        return false;
+    }
+
+    im_data->time = 0.f;
+
+    i32 attr_idx[3] = {-1, -1, -1};
+
+    do
+    {
+        DProfContext _(IM_API "Allocating vertex objects");
+        im_data->attributes.alloc();
+        im_data->vertices.alloc();
+        im_data->elements.alloc();
+    } while(false);
+
+    do
+    {
+        DProfContext            _(IM_API "Compiling shaders");
+        RHI::GLEAM::gleam_error gec;
+
+        GFX::SHD vert;
+        GFX::SHD frag;
+        auto&    pip = im_data->pipeline;
+
+        auto vd = Bytes::CreateString(vertex_shader);
+        if(!vert.compile(RHI::ShaderStage::Vertex, vd, gec))
+        {
+            ec = ImError::ShaderCompilation;
+            ec = gec.error_message;
+            return false;
+        }
+
+        auto fd = Bytes::CreateString(fragment_shader);
+        if(!frag.compile(RHI::ShaderStage::Fragment, fd, gec))
+        {
+            ec = ImError::ShaderCompilation;
+            ec = gec.error_message;
+            return false;
+        }
+
+        auto& vert_owned = pip.storeShader(std::move(vert));
+        auto& frag_owned = pip.storeShader(std::move(frag));
+
+        if(!pip.attach(vert_owned, RHI::ShaderStage::Vertex, gec))
+        {
+            ec = ImError::ShaderAttach;
+            ec = gec.message();
+            return false;
+        }
+
+        if(!pip.attach(frag_owned, RHI::ShaderStage::Fragment, gec))
+        {
+            ec = ImError::ShaderAttach;
+            ec = gec.message();
+            return false;
+        }
+
+        if(!pip.assemble(gec))
+        {
+            ec = ImError::ShaderAttach;
+            ec = gec.message();
+            return false;
+        }
+
+        Profiler::DeepPushContext(IM_API "Getting shader properties");
+        im_data->shader_view.get_pipeline_params();
+        Profiler::DeepPopContext();
+
+        for(auto const& unif : im_data->shader_view.constants())
+        {
+            if(unif.m_name == "Texture")
+                im_data->shader_view.set_sampler(
+                    unif, im_data->fonts_sampler.handle());
+            if(unif.m_name == "ProjMtx")
+                im_data->shader_view.set_constant(
+                    unif, Bytes::Create(im_data->projection_matrix));
+        }
+
+        im_data->shader_view.build_state();
+
+        for(auto const& attr : im_data->shader_view.params())
+        {
+            if(attr.m_name == "Position")
+                attr_idx[0] = attr.m_idx;
+            if(attr.m_name == "UV")
+                attr_idx[1] = attr.m_idx;
+            if(attr.m_name == "Color")
+                attr_idx[2] = attr.m_idx;
+        }
+    } while(false);
+
+    do
+    {
+        DProfContext _(IM_API "Creating vertex array object");
+
+        GFX::V_ATTR pos;
+        GFX::V_ATTR tex;
+        GFX::V_ATTR col;
+        auto&       a = im_data->attributes;
+
+        pos.m_idx = C_FCAST<u32>(attr_idx[0]);
+        tex.m_idx = C_FCAST<u32>(attr_idx[1]);
+        col.m_idx = C_FCAST<u32>(attr_idx[2]);
+
+        pos.m_size = tex.m_size = 2;
+        col.m_size              = 4;
+
+        pos.m_stride = tex.m_stride = col.m_stride = sizeof(ImDrawVert);
+        pos.m_off                                  = offsetof(ImDrawVert, pos);
+        tex.m_off                                  = offsetof(ImDrawVert, uv);
+        col.m_off                                  = offsetof(ImDrawVert, col);
+        col.m_type                                 = RHI::TypeEnum::UByte;
+        col.m_flags = GFX::AttributePacked | GFX::AttributeNormalization;
+
+        a.addAttribute(pos);
+        a.addAttribute(tex);
+        a.addAttribute(col);
+
+        a.bindBuffer(0, im_data->vertices);
+        a.setIndexBuffer(&im_data->elements);
+    } while(false);
+
+    ImGui_ImplSdlGL3_CreateFontsTexture();
+
+    return true;
+}
+
+void InvalidateDeviceObjects(imgui_error_code& ec)
+{
+    const auto im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
+
+    if(im_data)
+    {
+        DProfContext    _(IM_API "Invalidating device objects");
+        GFX::DBG::SCOPE a(IM_API "Invalidating device objects");
+        im_data->vertices.dealloc();
+        im_data->elements.dealloc();
+        im_data->attributes.dealloc();
+    } else
+        ec = ImError::AlreadyUnloaded;
+}
+
+bool Init(WindowManagerClient&, EventApplication& event)
 {
     DProfContext _(IM_API "Initializing state");
 
@@ -622,21 +691,32 @@ bool Coffee::CImGui::Init(WindowManagerClient&, EventApplication& event)
     return true;
 }
 
-void Coffee::CImGui::Shutdown()
+void Shutdown()
 {
     DProfContext _(IM_API "Shutting down");
-    im_data = nullptr;
 
-    InvalidateDeviceObjects();
+    State::SwapState("im_data", {});
+
+    imgui_error_code ec;
+
+    InvalidateDeviceObjects(ec);
     ImGui::Shutdown();
 }
 
-void Coffee::CImGui::NewFrame(
-    WindowManagerClient& window, EventApplication& event)
+void NewFrame(WindowManagerClient& window, EventApplication& event)
 {
+    auto im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
     DProfContext _(IM_API "Preparing frame data");
+
+    imgui_error_code ec;
+
     if(!im_data || !im_data->pipeline.pipelineHandle())
-        CreateDeviceObjects();
+    {
+        CreateDeviceObjects(ec);
+        im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
+    }
+
+    C_ERROR_CHECK(ec);
 
     ImGuiIO& io = ImGui::GetIO();
 
@@ -670,9 +750,43 @@ void Coffee::CImGui::NewFrame(
     ImGui::NewFrame();
 }
 
-void CImGui::EndFrame()
+void EndFrame()
 {
     DProfContext _(IM_API "Rendering UI");
 
     ImGui::Render();
 }
+
+const char* imgui_error_category::name() const noexcept
+{
+    return "imgui_error_category";
+}
+
+std::string imgui_error_category::message(int code) const
+{
+    using E = ImError;
+
+    E error = C_CAST<E>(code);
+
+    switch(error)
+    {
+    case E::ShaderCompilation:
+        return "Shader compilation failed";
+    case E::ShaderAttach:
+        return "Shader attach failed";
+    case E::AlreadyLoaded:
+        return "ImGui is already loaded";
+    case E::AlreadyUnloaded:
+        return "ImGui is already unloaded";
+    case E::InvalidDisplaySize:
+        return "Display size is 0x0";
+
+    case E::GlobalStateFailure:
+        return "Failed to initialize global state";
+    }
+
+    C_ERROR_CODE_OUT_OF_BOUNDS();
+}
+
+} // namespace CImGui
+} // namespace Coffee

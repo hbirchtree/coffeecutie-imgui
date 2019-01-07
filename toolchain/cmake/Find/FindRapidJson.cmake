@@ -11,7 +11,19 @@ find_path ( RAPIDJSON_INCLUDE_DIR_TMP
     ${RAPIDJSON_ROOT_DIR}
     ${CMAKE_SOURCE_DIR}/libs
     ${COFFEE_ROOT_DIR}
+    ${COFFEE_ROOT_DIR}/libs
 
+    PATH_SUFFIXES
+    include/
+    rapidjson/include/
+
+    NO_CMAKE_FIND_ROOT_PATH
+    )
+
+find_path ( RAPIDJSON_INCLUDE_DIR_TMP
+    NAMES
+    rapidjson/rapidjson.h
+    
     PATH_SUFFIXES
     include/
     rapidjson/include/

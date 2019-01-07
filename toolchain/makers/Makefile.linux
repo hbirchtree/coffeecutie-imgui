@@ -65,10 +65,13 @@ android.armv7a.gingerbread.gles2: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.armv7a.gingerbread.gles2 \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.armv7a.gingerbread.gles2 \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -108,10 +111,13 @@ android.armv7a.kitkat.gles2: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.armv7a.kitkat.gles2 \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.armv7a.kitkat.gles2 \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -151,10 +157,13 @@ android.armv7a.lollipop.gles3: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.armv7a.lollipop.gles3 \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.armv7a.lollipop.gles3 \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -194,10 +203,13 @@ android.armv7a.nougat.gles2: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.armv7a.nougat.gles2 \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.armv7a.nougat.gles2 \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -237,10 +249,13 @@ android.armv7a.nougat.gles3: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.armv7a.nougat.gles3 \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.armv7a.nougat.gles3 \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/armeabi-v7a with NEON/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -280,10 +295,13 @@ android.armv8a.lollipop.gles3: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.armv8a.lollipop.gles3 \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.armv8a.lollipop.gles3 \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/arm64-v8a/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/arm64-v8a/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/arm64-v8a/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -323,10 +341,13 @@ android.armv8a.nougat.gles3: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.armv8a.nougat.gles3 \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.armv8a.nougat.gles3 \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/arm64-v8a/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/arm64-v8a/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/arm64-v8a/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -366,10 +387,13 @@ android.mips.kitkat: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.mips.kitkat \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.mips.kitkat \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/mips/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/mips/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/mips/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -409,10 +433,13 @@ android.mips64.kitkat: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.mips64.kitkat \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.mips64.kitkat \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/mips64/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/mips64/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/mips64/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -452,10 +479,13 @@ android.x86.kitkat: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.x86.kitkat \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.x86.kitkat \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -495,10 +525,13 @@ android.x86_64.kitkat: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.x86_64.kitkat \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.x86_64.kitkat \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86_64/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86_64/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86_64/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \
@@ -538,10 +571,13 @@ android.x86_64.nougat: FORCE native-libs
 	-DBUILD_TESTS=OFF \
 	-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
 	-DCMAKE_INSTALL_PREFIX=$(CMAKE_INSTALL_DIR)/android.x86_64.nougat \
-	-DCMAKE_TOOLCHAIN_FILE=$(CMAKE_SOURCE_DIR)/toolchain/cmake/Toolchains/all-android.toolchain.cmake \
+	-DCMAKE_TOOLCHAIN_FILE=$(ANDROID_NDK_INTERNAL)/build/cmake/android.toolchain.cmake \
 	-DCOFFEE_ROOT_DIR=$(COFFEE_ROOT_DIR)/android.x86_64.nougat \
 	-DNATIVE_LIBRARY_DIR=$(NATIVE_LIBRARY_DIR)/Android \
 	-DNATIVE_LIBRARY_ROOT=$(NATIVE_LIBRARY_DIR) \
+	-DOPENSSL_CRYPTO_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86_64/ssl/lib/libcrypto.a\\\" \
+	-DOPENSSL_INCLUDE_DIR=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86_64/ssl/include\\\" \
+	-DOPENSSL_SSL_LIBRARY=\\\"$(NATIVE_LIBRARY_DIR)/Android/libraries/x86_64/ssl/lib/libssl.a\\\" \
 	-DSKIP_GRAPHIC_TESTS=$(HEADLESS) \
 	-G'CodeBlocks - Ninja'" \
 	-e DOCKER_EXTRA_OPTIONS=" \

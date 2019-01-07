@@ -26,6 +26,20 @@ find_path ( OPENAL_INCLUDE_DIR
 
     PATHS
     ${OPENAL_SEARCH_PATHS}
+
+    NO_CMAKE_FIND_ROOT_PATH
+    )
+
+find_path ( OPENAL_INCLUDE_DIR
+    al.h
+    alc.h
+
+    PATH_SUFFIXES
+    include
+    include/AL
+
+    PATHS
+    ${OPENAL_SEARCH_PATHS}
     )
 
 find_library ( OPENAL_LIBRARY_TMP
@@ -44,6 +58,15 @@ find_library ( OPENAL_LIBRARY_TMP
 
     PATHS
     ${OPENAL_SEARCH_PATHS}
+
+    NO_CMAKE_FIND_ROOT_PATH
+    )
+
+find_library ( OPENAL_LIBRARY_TMP
+    NAMES
+    openal
+    OpenAL
+    OpenAL32
     )
 
 find_library ( OPENAL_EFX_LIBRARY_TMP
@@ -58,6 +81,13 @@ find_library ( OPENAL_EFX_LIBRARY_TMP
 
     PATHS
     ${OPENAL_SEARCH_PATHS}
+
+    NO_CMAKE_FIND_ROOT_PATH
+    )
+
+find_library ( OPENAL_EFX_LIBRARY_TMP
+    NAMES
+    EFX-Util
     )
 
 if(OPENAL_INCLUDE_DIR)

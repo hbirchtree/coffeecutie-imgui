@@ -11,7 +11,8 @@ export TRAVIS_REPO_URL="$(git remote get-url $(git remote | head -1))"
 
 function all_source_files()
 {
-  find ${BASE_DIR}/src/coffee ${BASE_DIR}/src/include -regex '.*\.\(cpp\|h\)' -type f $@      
+    local SRC_BASE_DIR=$(dirname ${0})
+    find ${SRC_BASE_DIR}/src/coffee ${SRC_BASE_DIR}/src/include -regex '.*\.\(cpp\|h\)' -type f $@      
 }
 
 case $1 in
@@ -21,6 +22,16 @@ case $1 in
     else
         BUILDVARIANT=${@:2} ${TC_DIR}/ci/travis-build.sh
     fi
+;;
+"list-targets")
+    grep '^[a-z]' toolchain/makers/Makefile.linux | grep FORCE | cut -d':' -f 1
+    grep '^[a-z]' toolchain/makers/Makefile.mac | grep FORCE | cut -d':' -f 1
+
+    echo "
+To build a target, execute $0 quick-build [target]"
+;;
+"quick-build-deps")
+    pip install PyYaml
 ;;
 "ci")
     ${TC_DIR}/configure_ci.py ${@:2}
@@ -67,8 +78,8 @@ case $1 in
 ;;
 "include-guards")
     for f in $(all_source_files); do
-        if [ ! -z "$(head -1 $@ | grep '#ifndef ')" ]; then
-            echo $@
+        if [ ! -z "$(head -1 $f | grep '#ifndef ')" ]; then
+            echo $f
         fi
     done
 ;;
@@ -107,6 +118,21 @@ case $1 in
         egrep '(u|)int(8|16|32|64)' $f /dev/null
     done
 ;;
+"query-source")
+    for f in $(all_source_files); do
+        egrep $2 $f /dev/null
+    done
+;;
+"filter-source")
+    for f in $(all_source_files); do
+        echo sed -e ${@:2} $f
+    done
+;;
+"get-notes")
+    for f in $(all_source_files); do
+        egrep  '(//|/\*)\s?(TODO|NOTE|WARNING|BUG|FIXME)' $f /dev/null
+    done
+;;
 *)
 echo "Available tools: 
 
@@ -115,6 +141,7 @@ Project management:
 
 Build tools:
     quick-build         - Use pre-defined build environments
+    list-targets        - List all available targets for building
     extract-tools       - Extract compiled tools into deployment directory
     extract-native-libs - Extract compiled libraries into deployment directory
     makefile-generator  - Regenerate meta-build system
@@ -143,6 +170,11 @@ Code tools:
     stl-guards          - Usage of std::* types
 
     type-guards         - Usage of deprecated [u]int[8|16|32|64] types
+
+    query-source        - Search through codebase
+    filter-source       - Perform sed regex operations on codebase
+
+    get-notes           - Get notes/todos from code
     "
 ;;
 esac

@@ -1,34 +1,45 @@
 #pragma once
 
-#include <coffee/core/types/cdef/infotypes.h>
-#include <coffee/interfaces/cgraphics_api.h>
+#include <coffee/core/types/hardware_info.h>
+#include <coffee/core/types/software_info.h>
 #include <coffee/imgui/imgui_binding.h>
+#include <coffee/interfaces/cgraphics_api.h>
 #include <type_traits>
 
-namespace Coffee{
-namespace CImGui{
+#include <coffee/strings/libc_types.h>
 
-namespace Widgets{
+#include <coffee/strings/format.h>
 
-using RendererViewer = Function<void(RHI::GraphicsAPI::GraphicsContext const&, RHI::GraphicsAPI::GraphicsDevice const&)>;
+namespace Coffee {
+namespace CImGui {
 
-template<typename GFX,
-         typename std::enable_if<std::is_base_of<RHI::GraphicsAPI, GFX>::value, bool>::type* = nullptr>
+namespace Widgets {
+
+using RendererViewer = Function<void(
+    RHI::GraphicsAPI::GraphicsContext const&,
+    RHI::GraphicsAPI::GraphicsDevice const&)>;
+
+template<
+    typename GFX,
+    typename std::enable_if<
+        std::is_base_of<RHI::GraphicsAPI, GFX>::value,
+        bool>::type* = nullptr>
 inline RendererViewer GetRendererViewer()
 {
-    return [](typename GFX::G_CTXT const& c, typename GFX::G_DEV const& d)
-    {
+    return [](typename GFX::G_CTXT const& c, typename GFX::G_DEV const& d) {
+        using namespace Coffee::Strings;
+
         auto& io = ImGui::GetIO();
 
         ImGui::SetNextWindowPos({4, 24});
 
         ImGui::Begin("Renderer info");
 
-        CString api_name;
+        CString       api_name;
         SWVersionInfo api_version;
-        HWDeviceInfo renderer_info;
+        HWDeviceInfo  renderer_info;
         SWVersionInfo driver_info;
-        CString sl_lang_name;
+        CString       sl_lang_name;
         SWVersionInfo sl_lang_version;
 
         api_name = GFX::GetAPIName(d);
@@ -39,13 +50,15 @@ inline RendererViewer GetRendererViewer()
         GFX::GetShaderLanguageVersion(c, &sl_lang_version);
 
         CString api_ver_str = cStringFormat(
-                    "{0}.{1}/{2}", api_version.major, api_version.minor, api_version.build);
+            "{0}.{1}/{2}",
+            api_version.major,
+            api_version.minor,
+            api_version.build);
         CString renderer_str = cStringFormat(
-                    "{0} {1}", renderer_info.manufacturer, renderer_info.model);
-        CString driver_str = cStringFormat(
-                    "{0}", driver_info.name);
+            "{0} {1}", renderer_info.manufacturer, renderer_info.model);
+        CString driver_str      = cStringFormat("{0}", driver_info.name);
         CString sl_lang_ver_str = cStringFormat(
-                    "{0}.{1}", sl_lang_version.major, sl_lang_version.minor);
+            "{0}.{1}", sl_lang_version.major, sl_lang_version.minor);
 
         ImGui::Text("API: %s", api_name.c_str());
         ImGui::Text("API version/level: %s", api_ver_str.c_str());
@@ -60,7 +73,7 @@ inline RendererViewer GetRendererViewer()
     };
 }
 
-}
+} // namespace Widgets
 
-}
-}
+} // namespace CImGui
+} // namespace Coffee

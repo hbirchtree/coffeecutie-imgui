@@ -1,18 +1,17 @@
-#include <CoffeeDef.h>
 #include <coffee/core/CApplication>
-#include <coffee/core/CDebug>
 #include <coffee/core/CFiles>
 
-#include <coffee/windowing/renderer/renderer.h>
-#include <coffee/graphics/apis/CGLeamRHI>
-#include <coffee/core/platform_data.h>
 #include <coffee/core/input/eventhandlers.h>
+#include <coffee/core/platform_data.h>
+#include <coffee/graphics/apis/CGLeamRHI>
+#include <coffee/windowing/renderer/renderer.h>
 
-#include <imgui.h>
-#include <coffee/imgui/imgui_binding.h>
+#include <coffee/strings/libc_types.h>
+
+#include <coffee/core/CDebug>
 #include <coffee/imgui/graphics_widgets.h>
-
-#include <coffee/core/coffee.h>
+#include <coffee/imgui/imgui_binding.h>
+#include <imgui.h>
 
 using namespace Coffee;
 
@@ -24,22 +23,22 @@ using GFX = RHI::NullAPI;
 
 struct RData
 {
-    GFX::API_CONTEXT load_api;
-    CString input;
-    CImGui::Widgets::FrameCounter counter;
+    GFX::API_CONTEXT                  load_api;
+    CString                           input;
+    CImGui::Widgets::FrameCounter     counter;
     CImGui::Widgets::EventHandlerList elist;
-    CImGui::Widgets::RendererViewer rviewer;
+    CImGui::Widgets::RendererViewer   rviewer;
 
-    bool open = false;
-    bool marked = false;
+    bool open        = false;
+    bool marked      = false;
     bool display_gui = true;
 
     u8 padding[5];
 };
-using R = Display::CSDL2Renderer;
-using Vis = Display::CDProperties;
+using R   = Display::CSDL2Renderer;
+using Vis = Display::Properties;
 
-using ELD = Display::EventLoopData<R,RData>;
+using ELD = Display::EventLoopData<R, RData>;
 
 void setup(R& r, RData* data)
 {
@@ -49,7 +48,7 @@ void setup(R& r, RData* data)
     if(!data->load_api(PlatformData::IsDebug()))
         r.closeWindow();
 
-    if(!CImGui::Init(r,r))
+    if(!CImGui::Init(r, r))
     {
         cWarning("Failed to init ImGui");
         r.closeWindow();
@@ -59,13 +58,13 @@ void setup(R& r, RData* data)
     data->display_gui = true;
 
     data->counter = CImGui::Widgets::GetFramerateStats(1.);
-    data->elist = CImGui::Widgets::GetEventHandlerList();
+    data->elist   = CImGui::Widgets::GetEventHandlerList();
     data->rviewer = CImGui::Widgets::GetRendererViewer<GFX>();
 }
 
 void loop(R& r, RData* data)
 {
-    GFX::DefaultFramebuffer().use(FramebufferT::All);
+    GFX::DefaultFramebuffer().use(RHI::FramebufferT::All);
     GFX::DefaultFramebuffer().clear(0, {0.2f, 0.2f, 0.3f, 1.0});
 
     bool enable_gui_now = data->display_gui;
@@ -78,7 +77,6 @@ void loop(R& r, RData* data)
 
     if(enable_gui_now)
     {
-
         data->rviewer(GFX::GraphicsContext(), GFX::GraphicsDevice());
 
         ImGui::Begin("Hello!", &data->open);
@@ -86,11 +84,13 @@ void loop(R& r, RData* data)
         data->counter(r);
 
         ImGui::Text("Hello, world!");
-        for(float i=0;i<1;i+=0.2)
-            ImGui::ProgressBar(CMath::fmod(r.contextTime()+i, 1.0), {-1, 1}, "HAHA");
+        for(float i = 0; i < 1; i += 0.2)
+            ImGui::ProgressBar(
+                CMath::fmod(r.contextTime() + i, 1.0), {-1, 1}, "HAHA");
 
         ImGuiInputTextFlags text_flags = 0;
-        ImGui::BeginChild("Test child", {300,100}, true, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::BeginChild(
+            "Test child", {300, 100}, true, ImGuiWindowFlags_AlwaysAutoResize);
         ImGui::Checkbox("Test", &data->marked);
         if(!data->marked)
             text_flags = ImGuiInputTextFlags_ReadOnly;
@@ -99,7 +99,7 @@ void loop(R& r, RData* data)
         ImGui::EndChild();
 
         ImGui::End();
-        
+
 #if !defined(NDEBUG)
         ImGui::ShowTestWindow();
 #endif
@@ -107,7 +107,6 @@ void loop(R& r, RData* data)
         data->elist(r);
         frame_prepared = true;
     }
-
 
     if(enable_gui_now && frame_prepared)
         CImGui::EndFrame();
@@ -120,11 +119,10 @@ void cleanup(R&, RData* data)
     data->input.resize(0);
 
     data->counter = nullptr;
-    data->elist = nullptr;
+    data->elist   = nullptr;
     data->rviewer = nullptr;
 
     CImGui::Shutdown();
-
 
     data->load_api = nullptr;
     GFX::UnloadAPI();
@@ -132,13 +130,14 @@ void cleanup(R&, RData* data)
 
 int32 coffeeimgui_main(int32, cstring_w*)
 {
+    using namespace Coffee::Input;
+
     RuntimeQueue::CreateNewQueue("ImGui");
 
-    auto disable_imgui = [](void* u, CIEvent const& ev, c_cptr data)
-    {
+    auto disable_imgui = [](void* u, CIEvent const& ev, c_cptr data) {
         if(ev.type == CIEvent::Keyboard)
         {
-            auto e = *(CIKeyEvent const*)data;
+            auto e           = *(CIKeyEvent const*)data;
             auto render_data = (RData*)u;
             if(e.key == CK_F9 && e.mod & CIKeyEvent::PressedModifier)
                 render_data->display_gui = !render_data->display_gui;
@@ -147,46 +146,36 @@ int32 coffeeimgui_main(int32, cstring_w*)
 
     Vis visual = Display::GetDefaultVisual<GFX>();
 
-    visual.gl.flags |= Display::GLProperties::GLDebug;
+    visual.gl.flags |= Display::GL::Properties::GLDebug;
 
     ELD* eld_data = new ELD{Display::CreateRendererUq(),
-            MkUq<RData>(),
-            setup, loop, cleanup,
-            0, {}};
+                            MkUq<RData>(),
+                            setup,
+                            loop,
+                            cleanup,
+                            0,
+                            {}};
 
     R& renderer = *eld_data->renderer.get();
 
     renderer.installEventHandler(
-    {
-                    Display::EventHandlers::WindowManagerCloseWindow<R>,
-                    "Window manager closing window",
-                    &renderer
-                });
+        {Display::EventHandlers::WindowManagerCloseWindow<R>,
+         "Window manager closing window",
+         &renderer});
+    renderer.installEventHandler({Display::EventHandlers::EscapeCloseWindow<R>,
+                                  "Escape key closing window",
+                                  &renderer});
     renderer.installEventHandler(
-    {
-                    Display::EventHandlers::EscapeCloseWindow<R>,
-                    "Escape key closing window",
-                    &renderer
-                });
-    renderer.installEventHandler(
-    {
-                    Display::EventHandlers::ResizeWindowUniversal<GFX>,
-                    "Window resizing",
-                    nullptr
-                });
+        {Display::EventHandlers::ResizeWindowUniversal<GFX>,
+         "Window resizing",
+         nullptr});
 
     renderer.installEventHandler(
-    {
-                   Display::EventHandlers::WindowManagerFullscreen<R>,
-                    "Window fullscreen trigger on F11 and Alt-Enter",
-                    &renderer
-                });
+        {Display::EventHandlers::WindowManagerFullscreen<R>,
+         "Window fullscreen trigger on F11 and Alt-Enter",
+         &renderer});
     renderer.installEventHandler(
-    {
-                    disable_imgui,
-                    "ImGui toggle switch on F9",
-                    eld_data->data.get()
-                });
+        {disable_imgui, "ImGui toggle switch on F9", eld_data->data.get()});
 
     CString err_s;
     R::execEventLoop(*eld_data, visual, err_s);

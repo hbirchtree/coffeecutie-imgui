@@ -1,5 +1,5 @@
 coffee_library (
-    TARGET CoffeeImGui
+    TARGET ImGui
     SOURCES
 
     imgui_binding.cpp
@@ -8,9 +8,9 @@ coffee_library (
     ${IMGUI_DIR}/imgui_demo.cpp
 
     LIBRARIES
-    CoffeeCore
-    CoffeeRenderer_Default
-    CoffeeGLeamRHI
+    Coffee::Core
+    Coffee::RendererDefault
+    Coffee::GLeamRHI
 
     HEADER_DIRS
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/libs/imgui>
@@ -25,6 +25,11 @@ target_compile_definitions ( CoffeeImGui PUBLIC
     -DIMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCS
     )
 
-coffee_bundle_includes ( ${CMAKE_SOURCE_DIR}/src/include )
-coffee_bundle_header ( ${CMAKE_SOURCE_DIR}/src/libs/imgui/imgui.h )
-coffee_bundle_header ( ${CMAKE_SOURCE_DIR}/src/libs/imgui/imconfig.h )
+coffee_bundle (
+    HEADER_DIRECTORIES
+    ${CMAKE_SOURCE_DIR}/src/include
+
+    PUBLIC_HEADERS
+    ${CMAKE_SOURCE_DIR}/src/libs/imgui/imgui.h
+    ${CMAKE_SOURCE_DIR}/src/libs/imgui/imconfig.h
+    )

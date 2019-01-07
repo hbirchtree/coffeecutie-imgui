@@ -2,14 +2,38 @@
 
 #include <coffee/core/base/renderer/eventapplication.h>
 #include <coffee/core/base/renderer/windowmanagerclient.h>
-#include <coffee/core/types/tdef/integertypes.h>
-#include <coffee/core/plat/plat_sysinfo.h>
-#include <coffee/core/plat/plat_process.h>
+#include <coffee/core/libc_types.h>
+#include <coffee/core/stl_types.h>
+#include <peripherals/stl/string_ops.h>
+#include <platforms/process.h>
+#include <platforms/sysinfo.h>
 
 #include <imgui.h>
 
 namespace Coffee {
 namespace CImGui {
+
+struct imgui_error_category : error_category
+{
+    virtual const char *name() const noexcept override;
+    virtual std::string message(int) const override;
+};
+
+enum class ImError
+{
+    /* Graphics errors */
+    ShaderCompilation,
+    ShaderAttach,
+
+    /* State errors */
+    AlreadyLoaded,
+    AlreadyUnloaded,
+    InvalidDisplaySize,
+
+    GlobalStateFailure,
+};
+
+using imgui_error_code = domain_error_code<ImError, imgui_error_category>;
 
 using namespace Display;
 
@@ -19,8 +43,8 @@ IMGUI_API void NewFrame(WindowManagerClient& window, EventApplication& event);
 IMGUI_API void EndFrame();
 
 // Use if you want to reset your rendering device without losing ImGui state.
-IMGUI_API void InvalidateDeviceObjects();
-IMGUI_API bool CreateDeviceObjects();
+IMGUI_API void InvalidateDeviceObjects(imgui_error_code &ec);
+IMGUI_API bool CreateDeviceObjects(imgui_error_code &ec);
 
 namespace Widgets {
 
@@ -40,7 +64,7 @@ inline MainMenuWidget GetFrametimeGraph(bigscalar interval)
         scalar mx = 0.f;
 
         for(scalar v : m_values)
-            mx = CMath::max(v, mx);
+            mx = math::max(v, mx);
 
         ImGui::PlotHistogram(
             "",
@@ -62,6 +86,8 @@ inline FrameCounter GetFramerateStats(
                                                                   u32) {})
 {
     return [=](EventApplication const& event) {
+        using namespace ::platform;
+
         static bigscalar next_time;
         static bigscalar prev_time_always;
         static bigscalar prev_ms;

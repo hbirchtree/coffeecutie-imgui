@@ -26,7 +26,11 @@
   - $(cmake.src)
   - -G'$(generator)'
   - -C$(toolchain-dir)/Preload/$(preload)
-  - -DCMAKE_TOOLCHAIN_FILE=$(toolchain-dir)/Toolchains/$(toolchain)
+
+# Android toolchain is always sourced from the Android NDK
+^((?!android).)*$:
+    +cmake-opts:
+      - -DCMAKE_TOOLCHAIN_FILE=$(toolchain-dir)/Toolchains/$(toolchain)
 
 # unused, but links build dependencies to platforms
 =build-deps:
@@ -42,8 +46,8 @@
   =generator: Xcode
   =compiler: Clang
   =cmake.src: $(project.src)
-  =cmake.build: $(project.build)
-  =cmake.install: $(project.install)
+  =cmake.build: $(project.build)/$(target-name)
+  =cmake.install: $(project.install)/$(target-name)
   =cmake.coffee-lib: $(lib.root)
   =cmake.native-lib: $(dependencies.native-libs.root)
   =cmake-project.src: $(project.src)/cmake
@@ -199,6 +203,7 @@ testing.linux.*:
     =android.gles20: OFF
 
   =android.toolchain: clang
+  =android.ssl.dir: $(cmake.native-lib)/$(build.prettyname)/libraries/$(android.abi)/ssl
   +cmake-opts:
     # Yay! Configuring the entire Android toolchain
     - -DANDROID_NDK=$(android.ndk)
@@ -209,6 +214,12 @@ testing.linux.*:
     - -DANDROID_ABI='$(android.abi)'
     - -DANDROID_CPP_FEATURES=$(android.features)
     - -DANDROID_ARM_NEON=$(android.arm-neon)
+    - -DCMAKE_TOOLCHAIN_FILE=$(android.ndk)/build/cmake/android.toolchain.cmake
+    - -DOPENSSL_INCLUDE_DIR=\\\"$(android.ssl.dir)/include\\\"
+    - -DOPENSSL_SSL_LIBRARY=\\\"$(android.ssl.dir)/lib/libssl.a\\\"
+    - -DOPENSSL_CRYPTO_LIBRARY=\\\"$(android.ssl.dir)/lib/libcrypto.a\\\"
+  #  +environment-vars:
+  # - -e OPENSSL_ROOT_DIR="$(cmake.native-lib)/$(build.prettyname)/libraries/$(android.abi)/ssl"
   =container: android
   =toolchain: all-android.toolchain.cmake
 

@@ -1,5 +1,5 @@
 coffee_application (
-    TARGET CoffeeImGuiTest
+    TARGET ImGuiTest
 
     TITLE "Coffee ImGui Test"
     COMPANY "Coffee"
@@ -7,7 +7,7 @@ coffee_application (
 
     SOURCES main.cpp
 
-    LIBRARIES CoffeeImGui
+    LIBRARIES ImGui Coffee::RendererDefault
 
     PERMISSIONS
     OPENGL
