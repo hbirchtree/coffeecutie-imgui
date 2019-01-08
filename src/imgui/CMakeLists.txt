@@ -18,7 +18,7 @@ coffee_library (
     $<INSTALL_INTERFACE:include>
     )
 
-target_compile_definitions ( CoffeeImGui PUBLIC
+target_compile_definitions ( ImGui PUBLIC
     -DCOFFEE_IMGUI_VERSION="${COFFEE_BUILD_STRING}"
     -DCOFFEE_IMGUI_USE_GLEAM
     -DIMGUI_DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCS
