@@ -14,7 +14,7 @@ if(BUILD_LIBRARIES)
 
     import_coffee_lib ( Coffee REQUIRED )
     
-    if(TARGET Coffee::SDL2)
+    if(TARGET Coffee::SDL2Backend)
         find_package ( SDL2 REQUIRED )
     endif()
     
