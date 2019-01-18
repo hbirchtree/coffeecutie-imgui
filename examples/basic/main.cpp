@@ -153,8 +153,7 @@ int32 coffeeimgui_main(int32, cstring_w*)
                             setup,
                             loop,
                             cleanup,
-                            0,
-                            {}};
+                            std::move(visual)};
 
     R& renderer = *eld_data->renderer.get();
 
