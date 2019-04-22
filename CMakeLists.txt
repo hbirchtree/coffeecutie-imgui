@@ -4,19 +4,32 @@ cmake_minimum_required(VERSION 3.1)
 include( toolchain/cmake/Modules/SubprojectFunctions.cmake )
 init_subproject()
 
+include (GitDependencies)
+
+dependency_get (
+    REQUIRED
+    SOURCE hbirchtree/coffeecutie
+    TAG automated-release-4.4.1.1.4
+    NAMES
+        libraries
+    )
+dependency_get (
+    SOURCE hbirchtree/native-library-bundle
+    TAG rel-0.3.1.0.12
+    NAMES
+        sdl2
+    )
 
 set ( IMGUI_DIR
     ${CMAKE_SOURCE_DIR}/src/libs/imgui
     )
 
 if(BUILD_LIBRARIES)
-    find_package ( StandardLibs REQUIRED )
-
-    import_coffee_lib ( Coffee REQUIRED )
-    
     if(TARGET Coffee::SDL2Backend)
         find_package ( SDL2 REQUIRED )
     endif()
+
+    find_package( Coffee REQUIRED )
     
     add_subdirectory(src/imgui)
 
