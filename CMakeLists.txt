@@ -25,11 +25,11 @@ set ( IMGUI_DIR
     )
 
 if(BUILD_LIBRARIES)
+    find_package( Coffee REQUIRED )
+
     if(TARGET Coffee::SDL2Backend)
         find_package ( SDL2 REQUIRED )
     endif()
-
-    find_package( Coffee REQUIRED )
     
     add_subdirectory(src/imgui)
 
