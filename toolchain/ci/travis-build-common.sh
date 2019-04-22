@@ -1,94 +1,14 @@
 #!/bin/bash
 
-#######################################
-# Build configuration
-#######################################
-TRAVIS_OS_NAME=${TRAVIS_OS_NAME:-linux}
-TRAVIS_BUILD_DIR=${TRAVIS_BUILD_DIR:-${PWD}}
+source $(dirname ${BASH_SOURCE})/travis-common.sh
 
-
-#######################################
-# Optional build options
-#######################################
-GENERATE_PROGRAMS=${GENERATE_PROGRAMS:-ON}
-CONFIGURATION=${CONFIGURATION:-Debug}
-CMAKE_TARGET=${CMAKE_TARGET:-}
-
-
-#######################################
-# For build reports
-#######################################
-FIREBASE_ENDPOINT=${FIREBASE_ENDPOINT:-}
-
-
-#######################################
-# Dependencies
-#######################################
-# Dependency listing
-DEPENDENCIES=${DEPENDENCIES:-}
-# No dependency downloads
-NODEPS=${NODEPS:-}
-# For downloading dependencies
-GITHUB_TOKEN=${GITHUB_TOKEN:-}
-
-
-#######################################
-# No deploy configuration
-#######################################
-NODEPLOY=${NODEPLOY:-}
-
-
-#######################################
-# Defined only for Travis CI builds, do not define locally!
-#######################################
-TRAVIS=${TRAVIS:-}
-
-
-#######################################
-# For potential issues with create directories
-#######################################
-umask 000
-
-#######################################
-# General variables
-#######################################
-SOURCE_DIR="$PWD"
-BUILD_DIR="$SOURCE_DIR/multi_build"
-
-
-COFFEE_DIR="$BUILD_DIR/coffee_lib"
+env
 
 #######################################
 # Create build directory and go to it
 #######################################
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
-
-#######################################
-# Export for scripts
-#######################################
-export BUILDVARIANT
-export MANUAL_DEPLOY
-export MANUAL_CONTEXT
-
-QTHUB_DOCKER="hbirch/coffeecutie:qthub-client"
-MAKEFILE="Makefile.linux"
-
-INFOPY="$SOURCE_DIR/toolchain/buildinfo.py"
-
-#######################################
-# Retrieve script location relative to source dir
-#######################################
-SCRIPT_DIR="$SOURCE_DIR/$(${INFOPY} --source-dir ${SOURCE_DIR} script_location)"
-MAKEFILE_DIR="$SOURCE_DIR/$(${INFOPY} --source-dir ${SOURCE_DIR} makefile_location)"
-
-CI_DIR="$MAKEFILE_DIR"
-
-HELPER="$SCRIPT_DIR/get_matching_release.py"
-GITHUBPY="$SCRIPT_DIR/github_api.py"
-
-
-source ${SCRIPT_DIR}/travis-common.sh
 
 function github_api()
 {
@@ -152,7 +72,7 @@ function container_run()
     "linux")
         local CONTAINER_DATA=`grep "^$2:" "$CI_DIR/$MAKEFILE" -A 30 | grep 'DOCKER_CONTAINER\|DOCKER_CONFIG'`
 
-        if [ -z `echo ${CONTAINER_DATA} | grep DOCKER_CONTFIG` ]; then
+        if [ -z `echo ${CONTAINER_DATA} | grep DOCKER_CONFIG` ]; then
             make -s -f ${CI_DIR}/Makefile.multi custom -e CUSTOM_COMMAND="$1" -e DOCKER_CONFIG=`echo ${CONTAINER_DATA} | cut -d '"' -f 2`
         else
             make -s -f ${CI_DIR}/Makefile.multi custom -e CUSTOM_COMMAND="$1" -e DOCKER_CONTAINER=`echo ${CONTAINER_DATA} | cut -d '"' -f 2`
@@ -179,6 +99,7 @@ function download_dependencies()
 
 function build_standalone()
 {
+    mkdir -p "$SOURCE_DIR" "$COFFEE_DIR" "$BUILD_DIR"
     [ ! -z ${TRAVIS} ] && sudo chmod -R 777 "$SOURCE_DIR" "$COFFEE_DIR" "$BUILD_DIR"
 
     if [ ! -z ${TRAVIS} ]; then
@@ -229,6 +150,8 @@ function build_standalone()
 
 function build_target()
 {
+    umask 000
+
     [[ -z ${TRAVIS_BUILD_DIR} ]] && TRAVIS_BUILD_DIR=${SOURCE_DIR}
 
     local BUILDVARIANT="$1"
@@ -255,27 +178,39 @@ function build_target()
     build_standalone "${BUILDVARIANT}"
 
     [ ! -z ${TRAVIS} ] && sudo chown -R $(whoami) ${BUILD_DIR}
+
+    return 0
 }
 
 function package_libraries()
 {
-    local _BASEDIR=${TAR_BASE:-build}
+    local _BASEDIR=${TAR_BASE:-$1/build/$BUILDVARIANT}
+    local _OUTFILE=${PWD}/$2
 
-    tar -zcf "$2" -C ${1} \
+    pushd $_BASEDIR
+
+    tar -zcf "$_OUTFILE" \
             --exclude=${_BASEDIR}/*/bin \
             --exclude=${_BASEDIR}/*/packaged \
-            ${_BASEDIR}/
+            .
+
+    popd
 }
 
 function package_binaries()
 {
-    local _BASEDIR=${TAR_BASE:-build}
+    local _BASEDIR=${TAR_BASE:-$1/build/$BUILDVARIANT}
+    local _OUTFILE=${PWD}/$2
 
-    tar -zcf "$2" -C $1 \
+    pushd $_BASEDIR
+
+    tar -zcf "$_OUTFILE" \
             --exclude=${_BASEDIR}/*/include \
             --exclude=${_BASEDIR}/*/lib \
             --exclude=${_BASEDIR}/*/share \
-            ${_BASEDIR}/
+            .
+
+    popd
 }
 
 function main()
