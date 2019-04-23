@@ -9,7 +9,7 @@ include (GitDependencies)
 dependency_get (
     REQUIRED
     SOURCE hbirchtree/coffeecutie
-    TAG automated-release-4.4.1.1.4
+    TAG automated-release-4.4.1.1.5
     NAMES
         libraries
     )
