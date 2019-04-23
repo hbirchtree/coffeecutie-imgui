@@ -1,3 +1,11 @@
+addons:
+  homebrew:
+    packages:
+    - sdl2
+    - cmake
+    - python3
+    - python
+    - jq
 after_success:
 - toolchain/ci/travis-deploy.sh
 apt:
@@ -14,7 +22,7 @@ dist: trusty
 env:
   global:
   - MAKEFILE_DIR=toolchain/makers
-  - DEPENDENCIES=hbirchtree/coffeecutie%
+  - DEPENDENCIES=
   - CONFIGURATION=Release
   matrix:
   - BUILDVARIANT=android.armv7a.kitkat.gles2

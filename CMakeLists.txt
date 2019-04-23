@@ -15,7 +15,7 @@ dependency_get (
     )
 dependency_get (
     SOURCE hbirchtree/native-library-bundle
-    TAG rel-0.3.1.0.12
+    TAG rel-0.3.1.0.14
     NAMES
         sdl2
     )
