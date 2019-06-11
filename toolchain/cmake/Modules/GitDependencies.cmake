@@ -43,10 +43,13 @@ function ( DEPENDENCY_GET )
         if(NOT "${CMAKE_PREFIX_PATH}" MATCHES "${LOCAL_DIR}" )
             set (
                 CMAKE_PREFIX_PATH
-                    "${CMAKE_PREFIX_PATH};${LOCAL_DIR}"
-                CACHE STRING ""
-                FORCE
+                "${CMAKE_PREFIX_PATH};${LOCAL_DIR}"
                 PARENT_SCOPE
+                )
+            set ( 
+                ${NAME}_DIR
+                ${LOCAL_DIR}/lib/cmake/${NAME}
+                PARENT_SCOPE 
                 )
         endif()
 
