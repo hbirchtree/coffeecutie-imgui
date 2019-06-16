@@ -11,7 +11,7 @@ dependency_get (
     SOURCE hbirchtree/coffeecutie
     TAG automated-release-4.4.1.1.6
     NAMES
-        libraries
+        libraries=Coffee
     )
 dependency_get (
     SOURCE hbirchtree/native-library-bundle
@@ -19,6 +19,8 @@ dependency_get (
     NAMES
         sdl2
     )
+
+message ( "${libraries_DIR} ${CMAKE_PREFIX_PATH}" )
 
 set ( IMGUI_DIR
     ${CMAKE_SOURCE_DIR}/src/libs/imgui
