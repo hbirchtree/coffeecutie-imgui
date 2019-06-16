@@ -33,7 +33,7 @@ function ( DEPENDENCY_GET )
 
     foreach ( NAME_COMBO ${DEP_NAMES} )
         string ( REPLACE "=" ";" NAME_LIST "${NAME_COMBO}" )
-        message ( "stuff ${NAME_LIST}" )
+
         list ( LENGTH NAME_LIST NAME_LEN )
         list ( GET NAME_LIST 0 NAME )
         if( NAME_LEN GREATER 1 )
@@ -57,6 +57,8 @@ function ( DEPENDENCY_GET )
                 PARENT_SCOPE
                 )
         endif()
+
+        set ( ${DEP_ALIAS}_DIR "${LOCAL_DIR}" )
 
         set ( FILE_URL "${BASE_URL}/${NAME}_${GIT_DEP_BUILDVARIANT}.${DEP_EXTENSION}" )
         set ( LOCAL_FILE "${DEP_CACHE_LOCATION}/${NAME}.${DEP_EXTENSION}" )
