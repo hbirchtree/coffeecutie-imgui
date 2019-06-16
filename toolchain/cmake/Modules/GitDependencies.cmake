@@ -31,7 +31,17 @@ function ( DEPENDENCY_GET )
     set ( BASE_URL
         "https://github.com/${DEP_SOURCE}/releases/download/${DEP_TAG}" )
 
-    foreach ( NAME ${DEP_NAMES} )
+    foreach ( NAME_COMBO ${DEP_NAMES} )
+        string ( REPLACE "=" ";" NAME_LIST "${NAME_COMBO}" )
+        message ( "stuff ${NAME_LIST}" )
+        list ( LENGTH NAME_LIST NAME_LEN )
+        list ( GET NAME_LIST 0 NAME )
+        if( NAME_LEN GREATER 1 )
+            list ( GET NAME_LIST 1 DEP_ALIAS )
+        else()
+            set ( DEP_ALIAS "${NAME}" )
+        endif()
+
         set ( LOCAL_DIR "${DEP_LIB_LOCATION}/${NAME}" )
 
         #
@@ -43,13 +53,8 @@ function ( DEPENDENCY_GET )
         if(NOT "${CMAKE_PREFIX_PATH}" MATCHES "${LOCAL_DIR}" )
             set (
                 CMAKE_PREFIX_PATH
-                "${CMAKE_PREFIX_PATH};${LOCAL_DIR}"
+                    "${CMAKE_PREFIX_PATH};${LOCAL_DIR}"
                 PARENT_SCOPE
-                )
-            set ( 
-                ${NAME}_DIR
-                ${LOCAL_DIR}/lib/cmake/${NAME}
-                PARENT_SCOPE 
                 )
         endif()
 

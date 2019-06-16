@@ -20,8 +20,6 @@ dependency_get (
         sdl2
     )
 
-message ( "${libraries_DIR} ${CMAKE_PREFIX_PATH}" )
-
 set ( IMGUI_DIR
     ${CMAKE_SOURCE_DIR}/src/libs/imgui
     )
