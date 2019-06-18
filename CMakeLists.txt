@@ -9,7 +9,7 @@ include (GitDependencies)
 dependency_get (
     REQUIRED
     SOURCE hbirchtree/coffeecutie
-    TAG automated-release-4.4.1.1.6
+    TAG automated-release-4.4.2.0.1
     NAMES
         libraries=Coffee
     )
@@ -17,7 +17,7 @@ dependency_get (
     SOURCE hbirchtree/native-library-bundle
     TAG rel-0.3.1.0.14
     NAMES
-        sdl2
+        sdl2=SDL2
     )
 
 set ( IMGUI_DIR
@@ -27,7 +27,7 @@ set ( IMGUI_DIR
 if(BUILD_LIBRARIES)
     find_package( Coffee REQUIRED )
 
-    if(TARGET Coffee::SDL2Backend)
+    if(TARGET Coffee::SDL2Backend AND NOT EMSCRIPTEN)
         find_package ( SDL2 REQUIRED )
     endif()
     
