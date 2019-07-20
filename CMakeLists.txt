@@ -7,11 +7,23 @@ init_subproject()
 include (GitDependencies)
 
 dependency_get (
+    SOURCE hbirchtree/native-library-bundle
+    TAG rel-0.3.1.0.14
+    NAMES
+        openssl=OpenSSL
+    )
+
+find_package ( Threads QUIET )
+find_package ( OpenSSL QUIET )
+
+dependency_get (
     REQUIRED
     SOURCE hbirchtree/coffeecutie
     TAG automated-release-4.4.2.0.1
     NAMES
         libraries=Coffee
+    SIDELOAD
+        ${COFFEE_LOCAL_BUILD}
     )
 dependency_get (
     SOURCE hbirchtree/native-library-bundle

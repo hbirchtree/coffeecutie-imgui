@@ -13,6 +13,10 @@
 #include <coffee/imgui/imgui_binding.h>
 #include <imgui.h>
 
+#if defined(FEATURE_ENABLE_ASIO)
+#include <coffee/asio/net_profiling.h>
+#endif
+
 using namespace Coffee;
 
 #if defined(COFFEE_IMGUI_USE_GLEAM)
@@ -131,6 +135,10 @@ void cleanup(R&, RData* data)
 int32 coffeeimgui_main(int32, cstring_w*)
 {
     using namespace Coffee::Input;
+
+#if defined(FEATURE_ENABLE_ASIO)
+    Net::RegisterProfiling();
+#endif
 
     RuntimeQueue::CreateNewQueue("ImGui");
 

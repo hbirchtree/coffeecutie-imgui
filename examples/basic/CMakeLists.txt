@@ -16,3 +16,9 @@ coffee_application (
     NETWORK_CONNECT
     JOYSTICK
     )
+
+if(TARGET Coffee::ASIO)
+    target_link_libraries ( ImGuiTest PRIVATE
+        Coffee::ASIO
+        )
+endif()
