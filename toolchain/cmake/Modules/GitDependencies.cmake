@@ -145,27 +145,31 @@ function( DEPENDENCY_LINK )
         )
 
     foreach ( DEP ${LINK_DEPENDENCIES} )
-        get_property ( PROPERTY_EXISTS TARGET "${LINK_TARGET}" PROPERTY GIT_DEPS SET )
+        get_property ( PROPERTY_EXISTS TARGET "${LINK_TARGET}" PROPERTY git_deps SET )
 
         if(PROPERTY_EXISTS)
-            get_property ( GIT_DEPS TARGET "${LINK_TARGET}" PROPERTY GIT_DEPS )
+            get_property ( GIT_DEPS TARGET "${LINK_TARGET}" PROPERTY git_deps )
             set_property ( TARGET "${LINK_TARGET}" PROPERTY
-                GIT_DEPS
+                git_deps
                 ${GIT_DEPS}
                 "${DEP},${GIT_DEPENDENCIES_${DEP}_VERSION},${GIT_DEPENDENCIES_${DEP}_SOURCE},${GIT_DEPENDENCIES_${DEP}_EXTENSION}"
                 )
         else()
             set_property ( TARGET "${LINK_TARGET}" PROPERTY
-                GIT_DEPS
+                git_deps
                 "${DEP},${GIT_DEPENDENCIES_${DEP}_VERSION},${GIT_DEPENDENCIES_${DEP}_SOURCE},${GIT_DEPENDENCIES_${DEP}_EXTENSION}"
                 )
         endif()
     endforeach()
 
-    get_property ( EXPORT_PROPS TARGET "${LINK_TARGET}" PROPERTY EXPORT_PROPERTIES )
     set_property ( TARGET "${LINK_TARGET}" PROPERTY
-        EXPORT_PROPERTIES ${EXPORT_PROPS} GIT_DEPS
+        EXPORT_PROPERTIES
+            git_deps
         )
+
+    get_property ( EXPORT_PROPS TARGET "${LINK_TARGET}" PROPERTY EXPORT_PROPERTIES )
+
+    message ( "Export props: ${EXPORT_PROPS}" )
 
 endfunction()
 
@@ -188,10 +192,10 @@ macro( DEPENDENCY_RESOLVE_INTERNAL )
         get_target_property( "LIB_TYPE" "${RES_TARGET}" TYPE )
 
         if(NOT "${LIB_TYPE}" STREQUAL "INTERFACE_LIBRARY")
-            get_property ( GIT_DEPS_DEFINED TARGET "${RES_TARGET}" PROPERTY GIT_DEPS SET )
+            get_property ( GIT_DEPS_DEFINED TARGET "${RES_TARGET}" PROPERTY git_deps SET )
 
             if(GIT_DEPS_DEFINED)
-                get_property ( GIT_DEPS TARGET "${RES_TARGET}" PROPERTY GIT_DEPS )
+                get_property ( GIT_DEPS TARGET "${RES_TARGET}" PROPERTY git_deps )
                 message ( "---- Deps: ${GIT_DEPS}" )
                 foreach( DEP ${GIT_DEPS} )
                     if("${DEP}" STREQUAL "")
