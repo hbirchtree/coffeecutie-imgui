@@ -10,6 +10,7 @@
 // https://github.com/ocornut/imgui
 
 #include <coffee/core/base.h>
+#include <coffee/core/base_state.h>
 #include <coffee/core/platform_data.h>
 #include <coffee/core/types/chunk.h>
 #include <coffee/core/types/input/keymap.h>

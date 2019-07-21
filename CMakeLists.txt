@@ -19,7 +19,7 @@ find_package ( OpenSSL QUIET )
 dependency_get (
     REQUIRED
     SOURCE hbirchtree/coffeecutie
-    TAG automated-release-4.4.2.1.0
+    TAG automated-release-4.4.2.2.0
     NAMES
         libraries=Coffee
     SIDELOAD
