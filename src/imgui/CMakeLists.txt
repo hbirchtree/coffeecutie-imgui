@@ -33,3 +33,8 @@ coffee_bundle (
     ${CMAKE_SOURCE_DIR}/src/libs/imgui/imgui.h
     ${CMAKE_SOURCE_DIR}/src/libs/imgui/imconfig.h
     )
+
+dependency_link (
+    TARGET ImGui
+    DEPENDENCIES libraries=Coffee
+    )

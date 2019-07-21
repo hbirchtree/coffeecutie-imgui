@@ -7,29 +7,13 @@ init_subproject()
 include (GitDependencies)
 
 dependency_get (
-    SOURCE hbirchtree/native-library-bundle
-    TAG rel-0.3.1.0.14
-    NAMES
-        openssl=OpenSSL
-    )
-
-find_package ( Threads QUIET )
-find_package ( OpenSSL QUIET )
-
-dependency_get (
     REQUIRED
     SOURCE hbirchtree/coffeecutie
-    TAG automated-release-4.4.2.2.0
+    TAG automated-release-4.4.2.3.0
     NAMES
         libraries=Coffee
     SIDELOAD
         ${COFFEE_LOCAL_BUILD}
-    )
-dependency_get (
-    SOURCE hbirchtree/native-library-bundle
-    TAG rel-0.3.1.0.14
-    NAMES
-        sdl2=SDL2
     )
 
 set ( IMGUI_DIR
@@ -37,15 +21,17 @@ set ( IMGUI_DIR
     )
 
 if(BUILD_LIBRARIES)
-    find_package( Coffee REQUIRED )
+    find_package ( Coffee REQUIRED )
 
-    if(TARGET Coffee::SDL2Backend AND NOT EMSCRIPTEN)
-        find_package ( SDL2 REQUIRED )
-    endif()
+    dependency_resolve ( Coffee::RendererDefault )
     
     add_subdirectory(src/imgui)
 
     if(BUILD_BINARIES AND BUILD_EXAMPLES)
+        if(TARGET Coffee::ASIO)
+            dependency_resolve ( Coffee::ASIO )
+        endif()
+
         add_subdirectory(examples/basic)
     endif()
 endif()
