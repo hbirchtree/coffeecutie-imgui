@@ -166,12 +166,12 @@ inline EventHandlerList GetEventHandlerList()
 
         for(auto const& e : *r.getEventHandlersI())
         {
-            CString ptr = str::print::pointerify(e.user_ptr);
+            CString ptr = typeid(e.func).name();
             ImGui::Text("%s : %s", e.name, ptr.c_str());
         }
         for(auto const& e : *r.getEventHandlersD())
         {
-            CString ptr = str::print::pointerify(e.user_ptr);
+            CString ptr = typeid(e.func).name();
             ImGui::Text("%s : %s", e.name, ptr.c_str());
         }
 

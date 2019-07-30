@@ -287,10 +287,8 @@ inline T const& C(c_cptr d)
     return *(C_FCAST<T const*>(d));
 }
 
-void ImGui_InputHandle(void* r, CIEvent const& ev, c_cptr data)
+void ImGui_InputHandle(ImGuiIO* io, CIEvent const& ev, c_cptr data)
 {
-    ImGuiIO* io = C_FCAST<ImGuiIO*>(r);
-
     switch(ev.type)
     {
     case CIEvent::TouchPan:
@@ -671,7 +669,13 @@ bool Init(WindowManagerClient&, EventApplication& event)
 
     ImGuiIO& io = ImGui::GetIO();
 
-    event.installEventHandler({ImGui_InputHandle, "ImGui input handler", &io});
+    /* io is statically allocated, this is safe */
+    auto io_ptr = &io;
+    event.installEventHandler(EHandle<CIEvent>(
+        [io_ptr](CIEvent const& e, c_cptr data) {
+            ImGui_InputHandle(io_ptr, e, data);
+        },
+        "ImGui input handler"));
 
     for(auto const& p : ImKeyMap)
     {
@@ -685,7 +689,7 @@ bool Init(WindowManagerClient&, EventApplication& event)
                                           // same ImDrawData pointer.
     io.SetClipboardTextFn = ImGui_ImplSdlGL3_SetClipboardText;
     io.GetClipboardTextFn = ImGui_ImplSdlGL3_GetClipboardText;
-    io.ClipboardUserData  = NULL;
+    io.ClipboardUserData  = nullptr;
 
     SetStyle();
 

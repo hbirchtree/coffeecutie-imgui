@@ -142,50 +142,45 @@ int32 coffeeimgui_main(int32, cstring_w*)
 
     RuntimeQueue::CreateNewQueue("ImGui");
 
-    auto disable_imgui = [](void* u, CIEvent const& ev, c_cptr data) {
-        if(ev.type == CIEvent::Keyboard)
-        {
-            auto e           = *(CIKeyEvent const*)data;
-            auto render_data = (RData*)u;
-            if(e.key == CK_F9 && e.mod & CIKeyEvent::PressedModifier)
-                render_data->display_gui = !render_data->display_gui;
-        }
-    };
-
     Vis visual = Display::GetDefaultVisual<GFX>();
 
     visual.gl.flags |= Display::GL::Properties::GLDebug;
 
-    ELD* eld_data = new ELD{Display::CreateRendererUq(),
-                            MkUq<RData>(),
-                            setup,
-                            loop,
-                            cleanup,
-                            std::move(visual)};
+    auto eld_data = MkShared<ELD>(
+        Display::CreateRendererUq(),
+        MkUq<RData>(),
+        setup,
+        loop,
+        cleanup,
+        std::move(visual));
+
+    using namespace Display;
+    using namespace EventHandlers;
+    using namespace Input;
 
     R& renderer = *eld_data->renderer.get();
 
     renderer.installEventHandler(
-        {Display::EventHandlers::WindowManagerCloseWindow<R>,
-         "Window manager closing window",
-         &renderer});
-    renderer.installEventHandler({Display::EventHandlers::EscapeCloseWindow<R>,
-                                  "Escape key closing window",
-                                  &renderer});
+        EHandle<Event>::MkHandler(WindowResize<GFX>()));
+    renderer.installEventHandler(EHandle<CIEvent>::MkHandler(
+        ExitOn<OnKey<Input::CK_Escape>>(eld_data->renderer)));
     renderer.installEventHandler(
-        {Display::EventHandlers::ResizeWindowUniversal<GFX>,
-         "Window resizing",
-         nullptr});
+        EHandle<CIEvent>::MkHandler(ExitOn<OnQuit>(eld_data->renderer)));
+    renderer.installEventHandler(EHandle<CIEvent>::MkHandler(
+        FullscreenOn<AnyIKey<
+            KeyCombo<CK_EnterNL, CIKeyEvent::KeyModifiers::RAltModifier>,
+            KeyCombo<CK_F11>>>(eld_data->renderer)));
 
-    renderer.installEventHandler(
-        {Display::EventHandlers::WindowManagerFullscreen<R>,
-         "Window fullscreen trigger on F11 and Alt-Enter",
-         &renderer});
-    renderer.installEventHandler(
-        {disable_imgui, "ImGui toggle switch on F9", eld_data->data.get()});
+    auto render_data = eld_data->data;
+    renderer.installEventHandler(EHandle<CIEvent>::MkFunc<CIKeyEvent>(
+        [render_data](CIEvent const& ev, CIKeyEvent const* e) {
+            if(e->key == CK_F9 && e->mod & CIKeyEvent::PressedModifier)
+                render_data->display_gui = !render_data->display_gui;
+        },
+        "ImGui toggle switch on F9"));
 
     CString err_s;
-    R::execEventLoop(*eld_data, visual, err_s);
+    R::execEventLoop(std::move(eld_data), visual, err_s);
 
     cDebug("Error: {0}", err_s);
 

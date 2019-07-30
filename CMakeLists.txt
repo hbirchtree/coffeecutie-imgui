@@ -9,11 +9,11 @@ include (GitDependencies)
 dependency_get (
     REQUIRED
     SOURCE hbirchtree/coffeecutie
-    TAG automated-release-4.4.2.4.1
+    TAG automated-release-4.4.2.6.3
     NAMES
         libraries=Coffee
     SIDELOAD
-        ${COFFEE_LOCAL_BUILD}
+        ${Coffee_LOCAL_BUILD}
     )
 
 set ( IMGUI_DIR
