@@ -1,10 +1,71 @@
+# General
 *~
-#reconfig.sh
+*.userprefs
 *.user
+.DS_Store
+*.swp
+
+# Directories
+bin
 build
 build_*
-__pycache__
-.local.yml
-*.pyc
 multi_build
+!build*.cpp
+!build*.h
+
+# JetBrains/CLion
+.idea
+
+# Makefiles
+Makefile
+
+# CMake files
+CMakeFiles
+
+# Ninja files
+.ninja_deps
+.ninja_log
+.ninja
+
+# Resources
+*.map
+#
+*.mesh
+*.tex
+*.snd
+*.shdr
+#
+*.mp4
+*.webm
+*.mkv
+#
+*.ogg
+*.flac
+*.mp3
+*.wav
+#
+gamecontrollerdb.txt*
+
+# Windows compilation files
+*.obj
+*.dll
+*.exe
+*.mdb
+*.lib
+
+# OS X compilation files
+*.dylib
+
+# Linux compilation files
+*.o
+*.so
+*.a
+*.out
+
+# From tools
+*.pyc
+__pycache__
+
 imgui.ini
+
+.local.yml
