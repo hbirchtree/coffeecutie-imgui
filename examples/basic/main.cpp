@@ -68,8 +68,8 @@ void setup(R& r, RData* data)
 
 void loop(R& r, RData* data)
 {
-    GFX::DefaultFramebuffer().use(RHI::FramebufferT::All);
-    GFX::DefaultFramebuffer().clear(0, {0.2f, 0.2f, 0.3f, 1.0});
+    GFX::DefaultFramebuffer()->use(RHI::FramebufferT::All);
+    GFX::DefaultFramebuffer()->clear(0, {0.2f, 0.2f, 0.3f, 1.0});
 
     bool enable_gui_now = data->display_gui;
     bool frame_prepared = false;

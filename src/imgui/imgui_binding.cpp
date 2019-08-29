@@ -84,7 +84,7 @@ C_UNUSED(STATICINLINE u32 ImToCfKey(ImGuiKey k))
 struct ImGuiData : State::GlobalState
 {
     ImGuiData() :
-        attributes(), pipeline(),
+        attributes(), pipeline(MkShared<GFX::PIP>()),
         vertices(RSCA::Streaming | RSCA::WriteOnly, 0),
         elements(RSCA::Streaming | RSCA::WriteOnly, 0), shader_view(pipeline),
         fonts(PixFmt::RGBA8)
@@ -93,10 +93,10 @@ struct ImGuiData : State::GlobalState
     }
     ~ImGuiData();
 
-    GFX::V_DESC attributes;
-    GFX::PIP    pipeline;
-    GFX::BUF_A  vertices;
-    GFX::BUF_E  elements;
+    GFX::V_DESC     attributes;
+    ShPtr<GFX::PIP> pipeline;
+    GFX::BUF_A      vertices;
+    GFX::BUF_E      elements;
 
     RHI::shader_param_view<GFX> shader_view;
 
@@ -117,7 +117,7 @@ ImGuiData::~ImGuiData()
     vertices.dealloc();
     elements.dealloc();
     attributes.dealloc();
-    pipeline.dealloc(ec);
+    pipeline->dealloc(ec);
     fonts.dealloc();
     fonts_sampler.dealloc();
 }
@@ -219,7 +219,7 @@ static void ImGui_ImplSdlGL3_RenderDrawLists(ImDrawData* draw_data)
                 /* TODO: Improve this by using batching structure,
                  *  D_DATA arrays */
                 GFX::Draw(
-                    im_data->pipeline,
+                    *im_data->pipeline,
                     im_data->shader_view.get_state(),
                     im_data->attributes,
                     dc,
@@ -561,24 +561,24 @@ bool CreateDeviceObjects(imgui_error_code& ec)
             return false;
         }
 
-        auto& vert_owned = pip.storeShader(std::move(vert));
-        auto& frag_owned = pip.storeShader(std::move(frag));
+        auto& vert_owned = pip->storeShader(std::move(vert));
+        auto& frag_owned = pip->storeShader(std::move(frag));
 
-        if(!pip.attach(vert_owned, RHI::ShaderStage::Vertex, gec))
+        if(!pip->attach(vert_owned, RHI::ShaderStage::Vertex, gec))
         {
             ec = ImError::ShaderAttach;
             ec = gec.message();
             return false;
         }
 
-        if(!pip.attach(frag_owned, RHI::ShaderStage::Fragment, gec))
+        if(!pip->attach(frag_owned, RHI::ShaderStage::Fragment, gec))
         {
             ec = ImError::ShaderAttach;
             ec = gec.message();
             return false;
         }
 
-        if(!pip.assemble(gec))
+        if(!pip->assemble(gec))
         {
             ec = ImError::ShaderAttach;
             ec = gec.message();
@@ -715,7 +715,7 @@ void NewFrame(WindowManagerClient& window, EventApplication& event)
 
     imgui_error_code ec;
 
-    if(!im_data || !im_data->pipeline.pipelineHandle())
+    if(!im_data || !im_data->pipeline->pipelineHandle())
     {
         CreateDeviceObjects(ec);
         im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
