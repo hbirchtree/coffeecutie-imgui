@@ -7,7 +7,7 @@ coffee_application (
 
     SOURCES main.cpp
 
-    LIBRARIES ImGui
+    LIBRARIES ImGui Coffee::ComponentBundleSetup
 
     PERMISSIONS
     OPENGL

@@ -9,10 +9,13 @@
 // examples/README.txt and documentation at the top of imgui.cpp.
 // https://github.com/ocornut/imgui
 
+#include <coffee/core/CProfiling>
 #include <coffee/core/base.h>
 #include <coffee/core/base_state.h>
 #include <coffee/core/platform_data.h>
 #include <coffee/core/types/chunk.h>
+#include <coffee/core/types/display/event.h>
+#include <coffee/core/types/input/event_types.h>
 #include <coffee/core/types/input/keymap.h>
 #include <coffee/graphics/apis/CGLeamRHI>
 #include <coffee/imgui/imgui_binding.h>
@@ -287,8 +290,10 @@ inline T const& C(c_cptr d)
     return *(C_FCAST<T const*>(d));
 }
 
-void ImGui_InputHandle(ImGuiIO* io, CIEvent const& ev, c_cptr data)
+void ImGui_InputHandle(CIEvent const& ev, c_ptr data)
 {
+    auto io = &ImGui::GetIO();
+
     switch(ev.type)
     {
     case CIEvent::TouchPan:
@@ -440,9 +445,9 @@ static void SetStyle()
     style.Colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_PlotLinesHovered] =
         ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
+    style.Colors[ImGuiCol_PlotHistogram] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     style.Colors[ImGuiCol_PlotHistogramHovered] =
-        ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+        ImVec4(1.00f, 1.00f, 1.00f, 0.80f);
     style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
     style.Colors[ImGuiCol_ModalWindowDarkening] =
         ImVec4(0.00f, 0.00f, 0.00f, 0.80f);
@@ -663,7 +668,7 @@ void InvalidateDeviceObjects(imgui_error_code& ec)
         ec = ImError::AlreadyUnloaded;
 }
 
-bool Init(WindowManagerClient&, EventApplication& event)
+bool Init(Components::EntityContainer& container)
 {
     DProfContext _(IM_API "Initializing state");
 
@@ -671,11 +676,8 @@ bool Init(WindowManagerClient&, EventApplication& event)
 
     /* io is statically allocated, this is safe */
     auto io_ptr = &io;
-    event.installEventHandler(EHandle<CIEvent>(
-        [io_ptr](CIEvent const& e, c_cptr data) {
-            ImGui_InputHandle(io_ptr, e, data);
-        },
-        "ImGui input handler"));
+    container.service<comp_app::BasicEventBus<CIEvent>>()->addEventData(
+        {100, ImGui_InputHandle});
 
     for(auto const& p : ImKeyMap)
     {
@@ -708,7 +710,7 @@ void Shutdown()
     ImGui::Shutdown();
 }
 
-void NewFrame(WindowManagerClient& window, EventApplication& event)
+void NewFrame(Components::EntityContainer& container)
 {
     auto im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
     DProfContext _(IM_API "Preparing frame data");
@@ -726,7 +728,7 @@ void NewFrame(WindowManagerClient& window, EventApplication& event)
     ImGuiIO& io = ImGui::GetIO();
 
     // Setup display size (every frame to accommodate for window resizing)
-    auto s = window.windowSize();
+    auto s = container.service<comp_app::Windowing>()->size();
 
     scalar uiScaling = PlatformData::DeviceDPI();
 
@@ -734,14 +736,14 @@ void NewFrame(WindowManagerClient& window, EventApplication& event)
     io.DisplayFramebufferScale = ImVec2(uiScaling, uiScaling);
 
     // Setup time step
-    f32 time     = C_CAST<f32>(event.contextTime());
+    f32 time     = C_CAST<f32>(0);
     io.DeltaTime = im_data->time > 0.0f ? C_CAST<f32>(time - im_data->time)
                                         : C_CAST<f32>(1.0f / 60.0f);
     im_data->time = time;
 
     // Setup inputs
 #if !defined(COFFEE_ANDROID) && !defined(COFFEE_APPLE_MOBILE)
-    auto pos    = event.mousePosition();
+    auto pos    = container.service<comp_app::MouseInput>()->position();
     io.MousePos = ImVec2(pos.x / uiScaling, pos.y / uiScaling);
 #else
     io.MouseDown[CIMouseButtonEvent::LeftButton - 1] = false;
@@ -791,6 +793,73 @@ std::string imgui_error_category::message(int code) const
     }
 
     C_ERROR_CODE_OUT_OF_BOUNDS();
+}
+
+void ImGuiSystem::load(entity_container& e, comp_app::app_error& ec)
+{
+    Init(e);
+    priority = 512;
+}
+
+void ImGuiSystem::unload(entity_container& e, comp_app::app_error& ec)
+{
+    Shutdown();
+}
+
+void ImGuiSystem::start_restricted(Proxy& p, Components::time_point const& t)
+{
+    NewFrame(get_container(p));
+
+    auto delta = Chrono::duration_cast<duration>(t - m_previousTime);
+
+    for(auto& widget : m_widgets)
+        widget(get_container(p), t, delta);
+
+    m_previousTime = t;
+}
+
+void ImGuiSystem::end_restricted(Proxy&, Components::time_point const&)
+{
+    EndFrame();
+}
+
+ImGuiSystem& ImGuiSystem::addWidget(ImGuiWidget&& widget)
+{
+    m_widgets.emplace_back(std::move(widget));
+    return *this;
+}
+
+ImGuiWidget Widgets::StatsMenu()
+{
+    return [ m_values = Vector<scalar>(), m_index = szptr(0) ](
+        Components::EntityContainer&,
+        Components::time_point const&,
+        Components::duration const& delta) mutable
+    {
+        m_values.resize(50);
+
+        const auto delta_ms =
+            Chrono::duration_cast<Chrono::seconds_float>(delta).count();
+
+        ImGui::BeginMainMenuBar();
+        ImGui::Columns(4);
+
+        ImGui::TextColored({1, 1, 1, 1}, "ms=%f", delta_ms);
+
+        ImGui::NextColumn();
+
+        ImGui::NextColumn();
+
+        ImGui::NextColumn();
+
+        m_values.at(m_index) = delta_ms;
+        ImGui::PlotHistogram(
+            "", m_values.data(), m_values.size(), 0, "", 0.f, 0.1f, {100, 24});
+        m_index = (++m_index) % m_values.size();
+
+        ImGui::NextColumn();
+        ImGui::EndMainMenuBar();
+    };
 }
 
 } // namespace CImGui

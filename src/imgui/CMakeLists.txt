@@ -9,7 +9,7 @@ coffee_library (
 
     LIBRARIES
     Coffee::Core
-    Coffee::RendererDefault
+    Coffee::ComponentBundleSetup
     Coffee::GLeamRHI
 
     HEADER_DIRS

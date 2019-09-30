@@ -22,9 +22,8 @@ set ( IMGUI_DIR
 
 if(BUILD_LIBRARIES)
     find_package ( Coffee REQUIRED )
+    dependency_resolve ( Coffee::ComponentBundleSetup Coffee::CoreApplication )
 
-    dependency_resolve ( Coffee::RendererDefault )
-    
     add_subdirectory(src/imgui)
 
     if(BUILD_BINARIES AND BUILD_EXAMPLES)
