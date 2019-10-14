@@ -58,7 +58,8 @@ using ImGuiTag = Components::TagType<ImGuiSystem>;
 struct ImGuiSystem : Components::RestrictedSubsystem<
                          ImGuiTag,
                          type_safety::empty_list_t,
-                         type_safety::empty_list_t>,
+                         type_safety::empty_list_t,
+                         type_safety::type_list_t<comp_app::KeyboardInput>>,
                      comp_app::AppLoadableService
 {
     virtual const ImGuiSystem& get() const final
@@ -79,8 +80,9 @@ struct ImGuiSystem : Components::RestrictedSubsystem<
     ImGuiSystem& addWidget(ImGuiWidget&& widget);
 
   private:
-    time_point m_previousTime;
+    time_point          m_previousTime;
     Vector<ImGuiWidget> m_widgets;
+    bool                m_textInputActive;
 };
 
 namespace Widgets {

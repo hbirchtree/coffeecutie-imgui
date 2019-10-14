@@ -342,6 +342,12 @@ void ImGui_InputHandle(CIEvent const& ev, c_ptr data)
 
         break;
     }
+    case CIEvent::Scroll:
+    {
+        auto ev        = C<CIScrollEvent>(data);
+        io->MouseWheel = ev.delta.y;
+        break;
+    }
     case CIEvent::Keyboard:
     {
         auto ev = C<CIKeyEvent>(data);
@@ -383,6 +389,18 @@ void ImGui_InputHandle(CIEvent const& ev, c_ptr data)
         }
         break;
     }
+    case CIEvent::TextInput:
+    {
+        auto ev = C<CIWriteEvent>(data);
+        io->AddInputCharactersUTF8(ev.text);
+        break;
+    }
+    case CIEvent::TextEdit:
+    {
+        auto ev = C<CIWEditEvent>(data);
+        io->AddInputCharactersUTF8(ev.text);
+        break;
+    }
     default:
         break;
     }
@@ -392,10 +410,28 @@ static void SetStyle()
 {
     DProfContext _(IM_API "Applying custom style");
     ImGuiStyle&  style      = ImGui::GetStyle();
-    style.WindowRounding    = 0.f;
+    style.WindowRounding    = 3.f;
     style.FrameRounding     = 3.f;
     style.ScrollbarRounding = 0;
-    style.FramePadding      = {0.f, 3.f};
+    style.FramePadding      = {3.f, 3.f};
+
+    style.Colors[ImGuiCol_PlotHistogram]        = ImVec4(.3f, .3f, .9f, 1.f);
+    style.Colors[ImGuiCol_PlotLines]            = ImVec4(.3f, .3f, .9f, 1.f);
+    style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(.2f, .2f, .9f, 1.f);
+    style.Colors[ImGuiCol_PlotLinesHovered]     = ImVec4(.2f, .2f, .9f, 1.f);
+
+    style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(.2f, .2f, .9f, 1.f);
+    style.Colors[ImGuiCol_SliderGrabActive]    = ImVec4(.2f, .2f, .9f, 1.f);
+
+    style.Colors[ImGuiCol_Button]        = ImVec4(.2f, .2f, .9f, 1.f);
+    style.Colors[ImGuiCol_ButtonActive]  = ImVec4(.3f, .3f, .9f, 1.f);
+    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(.5f, .5f, .9f, 1.f);
+
+    style.Colors[ImGuiCol_FrameBg]        = ImVec4(.2f, .2f, .5f, 1.f);
+    style.Colors[ImGuiCol_FrameBgActive]  = ImVec4(.3f, .3f, .5f, 1.f);
+    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(.4f, .4f, .5f, 1.f);
+
+    return;
 
     style.Colors[ImGuiCol_Text]           = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_TextDisabled]   = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
@@ -464,7 +500,18 @@ static void SetStyle()
         style.Colors[i] = col;
     }
 
-    style.Colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_ResizeGrip]        = ImVec4(0.2f, 0.2f, 1.f, 1.f);
+    style.Colors[ImGuiCol_ResizeGripActive]  = ImVec4(0.4f, 0.4f, 1.f, 1.f);
+    style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.3f, 0.3f, 1.f, 1.f);
+
+    style.Colors[ImGuiCol_PlotHistogram]        = ImVec4(.9f, .9f, .9f, 1.f);
+    style.Colors[ImGuiCol_PlotLines]            = ImVec4(.9f, .9f, .9f, 1.f);
+    style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.f, 1.f, 1.f, 1.f);
+    style.Colors[ImGuiCol_PlotLinesHovered]     = ImVec4(1.f, 1.f, 1.f, 1.f);
+
+    style.Colors[ImGuiCol_ComboBg] = ImVec4(.0f, .0f, .0f, 1.00f);
+
+    style.Colors[ImGuiCol_Border] = ImVec4(.9f, .9f, .9f, 1.f);
 }
 
 namespace Coffee {
@@ -798,7 +845,8 @@ std::string imgui_error_category::message(int code) const
 void ImGuiSystem::load(entity_container& e, comp_app::app_error& ec)
 {
     Init(e);
-    priority = 512;
+    priority          = 512;
+    m_textInputActive = false;
 }
 
 void ImGuiSystem::unload(entity_container& e, comp_app::app_error& ec)
@@ -809,6 +857,22 @@ void ImGuiSystem::unload(entity_container& e, comp_app::app_error& ec)
 void ImGuiSystem::start_restricted(Proxy& p, Components::time_point const& t)
 {
     NewFrame(get_container(p));
+
+    auto  keyboard = p.service<comp_app::KeyboardInput>();
+    auto& io       = ImGui::GetIO();
+
+    if(keyboard)
+    {
+        if(io.WantTextInput && !m_textInputActive)
+        {
+            m_textInputActive = true;
+            keyboard->openVirtual();
+        } else if(!io.WantTextInput && m_textInputActive)
+        {
+            m_textInputActive = false;
+            keyboard->closeVirtual();
+        }
+    }
 
     auto delta = Chrono::duration_cast<duration>(t - m_previousTime);
 

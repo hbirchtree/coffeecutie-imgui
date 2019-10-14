@@ -125,6 +125,9 @@ int32 coffeeimgui_main(int32, cstring_w*)
 
     auto& container = comp_app::createContainer();
 
+//    container.debug_flags = Components::EntityContainer::Verbose_Visitors |
+//                            Components::EntityContainer::Verbose_Subsystems;
+
     auto& loader = comp_app::AppLoader::register_service(container);
     comp_app::configureDefaults(loader);
 
