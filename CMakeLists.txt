@@ -9,7 +9,7 @@ include (GitDependencies)
 dependency_get (
     REQUIRED
     SOURCE hbirchtree/coffeecutie
-    TAG automated-release-4.4.2.10.7
+    TAG rel-4.4.2.10.7
     NAMES
         libraries=Coffee
     SIDELOAD
