@@ -1,5 +1,5 @@
-project ( CoffeeImGui VERSION 0.9 )
 cmake_minimum_required(VERSION 3.1)
+project ( CoffeeImGui VERSION 0.9 )
 
 include( toolchain/cmake/Modules/SubprojectFunctions.cmake )
 init_subproject()
