@@ -19,7 +19,7 @@ branches:
   - testing
 compiles:
 - clang
-dist: trusty
+dist: bionic
 env:
   global:
   - MAKEFILE_DIR=toolchain/makers
@@ -41,6 +41,7 @@ matrix:
   - env: BUILDVARIANT=coverage
   - env: BUILDVARIANT=uwp.amd64
   - env: BUILDVARIANT=uwp.arm
+  - env: BUILDVARIANT=steam.amd64
   exclude:
   - env: BUILDVARIANT=android.armv7a.kitkat.gles2
     os: osx
