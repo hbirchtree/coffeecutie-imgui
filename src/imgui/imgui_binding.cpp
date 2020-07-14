@@ -272,11 +272,16 @@ void ImGui_ImplSdlGL3_CreateFontsTexture()
 
     auto surface_size = size_2d<i32>{width, height}.convert<u32>();
 
+    GFX::ERROR ec;
+
     s.allocate(surface_size, PixCmp::RGBA);
     s.upload(
         {s.m_pixfmt, BitFmt::UByte, PixCmp::RGBA},
         surface_size,
-        Bytes::From(pixels, pixelDataSize));
+        Bytes::From(pixels, pixelDataSize),
+        ec);
+
+    C_ERROR_CHECK(ec)
 
     sm.alloc();
     sm.setFiltering(Filtering::Linear, Filtering::Linear);
@@ -895,11 +900,10 @@ ImGuiSystem& ImGuiSystem::addWidget(ImGuiWidget&& widget)
 
 ImGuiWidget Widgets::StatsMenu()
 {
-    return [ m_values = Vector<scalar>(), m_index = szptr(0) ](
-        Components::EntityContainer&,
-        Components::time_point const&,
-        Components::duration const& delta) mutable
-    {
+    return [m_values = Vector<scalar>(), m_index = szptr(0)](
+               Components::EntityContainer&,
+               Components::time_point const&,
+               Components::duration const& delta) mutable {
         m_values.resize(50);
 
         const auto delta_ms =

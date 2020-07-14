@@ -8,9 +8,9 @@ coffee_library (
     ${IMGUI_DIR}/imgui_demo.cpp
 
     LIBRARIES
-    Coffee::Core
-    Coffee::ComponentBundleSetup
-    Coffee::GLeamRHI
+    Core
+    ComponentBundleSetup
+    GLeamRHI
 
     HEADER_DIRS
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/libs/imgui>
@@ -32,9 +32,4 @@ coffee_bundle (
     PUBLIC_HEADERS
     ${PROJECT_SOURCE_DIR}/src/libs/imgui/imgui.h
     ${PROJECT_SOURCE_DIR}/src/libs/imgui/imconfig.h
-    )
-
-dependency_link (
-    TARGET ImGui
-    DEPENDENCIES libraries=Coffee
     )
