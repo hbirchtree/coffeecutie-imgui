@@ -16,9 +16,6 @@
 =program.workdir: $(env:CMAKE_BUILD_DIR)
 =shell: ''
 
-# Default dependency
-=dependencies: 
-
 # Default container options
 =container-opts: ''
 =git-dep-target: $(target-name)
@@ -35,13 +32,6 @@
     +cmake-opts:
       - -DCMAKE_TOOLCHAIN_FILE=$(toolchain-dir)/Toolchains/$(toolchain)
 
-# unused, but links build dependencies to platforms
-=build-deps:
-  - assimp
-  - openal
-  - bullet
-  - openssl
-
 .*(osx|ios).*:
   =runner-choice: Makefile.mac-base
   ^((?!\$\(shell\)).)*$: # Don't apply this to shell targets
@@ -53,7 +43,6 @@
   =cmake.build: $(project.build)/$(target-name)
   =cmake.install: $(project.install)
   =cmake.coffee-lib: $(lib.root)
-  #=cmake.native-lib: $(dependencies.native-libs.root)
   =cmake-project.src: $(project.src)/cmake
   =program.workdir: $(project.build)/$(target-name)
   =container-opts:
@@ -61,7 +50,6 @@
     =description: Apple OS X
     =flavor: mac-osx
     =toolchain: osx-generic_osx.toolchain.cmake
-    =preload: osx-generic.cmake
     +cmake-opts:
       - -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
     .*coverage.*:
@@ -74,7 +62,6 @@
         - -DSKIP_OPENVR_TEST=ON
   .*ios.*:
     =toolchain: all-ios.toolchain.cmake
-    =preload: osx-ios.cmake
   .*ios$:
     =description: Device-oriented build for ARM64 and ARMv7-A
   .*ios.x86.*:
@@ -102,20 +89,23 @@
 # Some parameters to make coverage testing work
 coverage:
   =description: Coverage build using same config as Ubuntu
-  =compiler: Clang
-  =preload: linux-coverage.cmake
+  =compiler: GCC 7+
   =build-type: Debug
   =git-dep-target: ubuntu.amd64
-  +container-opts:
+  +container-opts: # Default to GCC
     - -e CC=
     - -e CXX=
+  +cmake-opts:
+    - -DBUILD_COVERAGE=ON
+    - -DBUILD_ASAN=ON
+    - -DBUILD_EXAMPLES=OFF
+    - -DSKIP_HIGHMEM_TESTS=ON
+    - -DSKIP_LINKAGE_TEST=ON
+    - -DSKIP_OPENVR_TEST=ON
 
 testing.linux.*:
-  =compiler: GCC 7+
+  =compiler: Clang 8+
   =git-dep-target: ubuntu.amd64
-  +container-opts:
-    - -e CC=
-    - -e CXX=
   +cmake-opts:
     - -DBUILD_EXAMPLES=OFF
     - -DSKIP_HIGHMEM_TESTS=ON
@@ -138,35 +128,43 @@ testing.linux.*:
 .*docs:
   =description: Documentation build using only Doxygen
   =compiler: Doxygen
-  =preload: docs-all.cmake
+  +cmake-opts:
+    - -DBUILD_LIBRARIES=OFF
+    - -DBUILD_DOCS=ON
 
 .*ubuntu.*:
   =description: Ubuntu build in a Ubuntu Docker
   =compiler: GCC 7+
-  =preload: linux-generic.cmake
+  +cmake-opts:
+    - -DBUILD_ASSIMP=ON
   .*i686.*:
     =container: ubuntu-i686
     =toolchain: linux-generic-i686_linux.toolchain.cmake
   .*gles[^2]?$:
-    =preload: linux-gles.cmake
+    +cmake-opts:
+      - -DBUILD_GLES=ON
   .*gles2:
-    =preload: linux-gles20.cmake
+    +cmake-opts:
+      - -DBUILD_GLES=ON
+      - -DBUILD_GLES_20=ON
 
 .*fedora.*:
   =description: Fedora build in a Fedora Docker
   =compiler: GCC 8+
-  =preload: linux-fedora.cmake
   =container: fedora
+  +cmake-opts:
+    - -DBUILD_ASSIMP=ON
+    - -DGENERATE_FLATPAK=ON
 
 
 .*steam.*:
   =description: Build against the SteamRT SDK
   =compiler: GCC 4.8.4
-  =preload: linux-steam.cmake
   =toolchain: cxx11.toolchain.cmake
   =container: steam
   +cmake-opts:
     - -DBUILD_CPP11=ON
+    - -DBUILD_ASSIMP=ON
   +container-opts:
     - -e CC=clang-3.6
     - -e CXX=clang++-3.6
@@ -176,29 +174,28 @@ testing.linux.*:
   =description: Emscripten with WebAssembly
   =compiler: Clang 7+
   =container: emscripten
-  =preload: js-emscripten.cmake
-  =emscripten.root: $(dependencies.emscripten.target)/upstream/emscripten
-  =emscripten.cmake: $(emscripten.root)/cmake
-  +dependencies:
-    - emscripten
+  =toolchain: emscripten.toolchain.cmake
   +cmake-opts:
-    - -DEMSCRIPTEN_ROOT_PATH=$(emscripten.root)
-    - -DCMAKE_TOOLCHAIN_FILE=$(emscripten.cmake)/Modules/Platform/Emscripten.cmake
+    - -DCMAKE_TOOLCHAIN_FILE=$(env:EMSCRIPTEN)/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+    - -DBUILD_AUDIO=OFF
+    - -DBUILD_GLES=ON
+    - -DBUILD_GLES_20=ON
+    - -DBUILD_OPENSSL=OFF
+    - -DBUILD_ASSIMP=OFF
+    - -DGENERATE_HTML=ON
   +container-opts:
-    - -e EMSCRIPTEN=$(emscripten.root)
     - -e CMAKE='emcmake cmake'
-  .*wasm.*:
-    =preload: js-emscripten-wasm.cmake
 
 
 .*android.*:
   =description: Android builds, ARMv8-A and ARMv7-A mostly
   =compiler: Clang
+  =android.gles2: OFF
   # Architecture specifics
   .*armv8a.*:
     =android.abi: arm64-v8a
   .*armv7a.*:
-    =android.abi: 'armeabi-v7a with NEON'
+    =android.abi: armeabi-v7a with NEON
   .*armeabi.*:
     =android.abi: armeabi
   .*(x86\.).*:
@@ -209,19 +206,25 @@ testing.linux.*:
     =android.abi: mips
   .*(mips64).*:
     =android.abi: mips64
-  # Specifying native API level
-  .*(jelly|kitkat).*:
+  # Native API
+  .*(gingerbread).*:
+    =android.api: 5
+  .*(v19).*:
     =android.api: 19
-  .*(lollipop|marshmallow).*:
+  .*(v21).*:
     =android.api: 21
-  .*nougat.*:
+  .*(v23).*:
+    =android.api: 23
+  .*(v24).*:
     =android.api: 24
-  # Graphical properties
-  .*gles3.*:
-    =android.gles20: OFF
+  .*(v27).*:
+    =android.api: 27
+  .*(v28).*:
+    =android.api: 28
+  .*(v29).*:
+    =android.api: 29
 
   =android.toolchain: clang
-  =android.ssl.dir: $(cmake.native-lib)/$(build.prettyname)/libraries/$(android.abi)/ssl
   +cmake-opts:
     # Yay! Configuring the entire Android toolchain
     - -DANDROID_NDK=$(android.ndk)
@@ -239,42 +242,50 @@ testing.linux.*:
 .*maemo.*:
   =description: Maemo 5 builds, performed within a Maemo 5 armel chroot
   =compiler: GCC 6
-  =preload: linux-maemo.cmake
   =toolchain: linux-maemo-armv7_linux.toolchain.cmake
   =container: hbirch/maemo-builder:v3
   =build.build-type: Release
   =target: multi.make8
   =generator: Unix Makefiles
   =container-opts:
-      #- -v $(dependencies.native-libs.root):/maemo/$(dependencies.native-libs.target):ro
     - -v $(lib.root):/maemo/$(lib.target):ro
     - -v $(project.src):/maemo/$(container.src):ro
     - -v $(project.install):/maemo/$(container.install):rw
     - -v $(project.build)/$(target-name):/maemo/$(container.build):rw
+  +cmake-opts:
+    - -DBUILD_ASIO=OFF
+    - -DBUILD_GLES=ON
+    - -DBUILD_GLES_20=ON
+    - -DBUILD_SDL2=OFF
 
 
 .*raspberry.*:
   =description: Raspberry Pi ARM 32-bit build
-  =compiler: GCC 8.3
-  =preload: linux-raspberry.cmake
+  =compiler: GCC 9.x
   =toolchain: linux-raspberry-armhf_linux.toolchain.cmake
   =container: raspberry
-  +dependencies: rpi-sdk
   +cmake-opts:
     - -DRASPBERRY_SDK=/pi-sysroot
+    - -DBUILD_GLES=ON
+    - -DBUILD_GLES_20=ON
+    - -DBUILD_OPENSSL=ON
 
 .*mingw.*:
   =description: MinGW64 environment in Ubuntu Docker
   =compiler: GCC 5+
   =toolchain: windows-mingw64_linux.toolchain.cmake
-  =preload: windows-mingw64.cmake
   =container: mingw64
+  +cmake-opts:
+    - -DBUILD_AUDIO=OFF
+    - -DBUILD_OPENSSL=OFF
 
 .*gamecube.*:
   =description: Nintendo Gamecube through DevkitPPC
   =compiler: GCC 6+
   =toolchain: none-cube-powerpc-eabi_linux.toolchain.cmake
   =container: hbirch/devkit:ppc
+  +cmake-opts:
+    - -DBUILD_GLEAM=OFF
 
 (ubuntu.*|coverage|testing.linux|docs):
   =build.prettyname: Ubuntu
@@ -296,3 +307,14 @@ testing.linux.*:
   =build.prettyname: GCN/DevkitPPC
 .*\$\(shell\)$:
   =target: shell
+
+win32:
+  =description: Win32 build
+  =compiler: MSVC
+  =build.prettyname: Win32
+  =toolchain: windows-win32_windows.toolchain.cmake
+uwp:
+  =description: UWP build
+  =compiler: MSVC
+  =build.prettyname: Universal Windows Platform
+  =toolchain: windows-uwp_windows.toolchain.cmake

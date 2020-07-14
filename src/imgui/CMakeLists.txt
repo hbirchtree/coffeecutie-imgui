@@ -13,8 +13,8 @@ coffee_library (
     Coffee::GLeamRHI
 
     HEADER_DIRS
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/libs/imgui>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/libs/imgui>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
     $<INSTALL_INTERFACE:include>
     )
 
@@ -27,11 +27,11 @@ target_compile_definitions ( ImGui PUBLIC
 
 coffee_bundle (
     HEADER_DIRECTORIES
-    ${CMAKE_SOURCE_DIR}/src/include
+    ${PROJECT_SOURCE_DIR}/src/include
 
     PUBLIC_HEADERS
-    ${CMAKE_SOURCE_DIR}/src/libs/imgui/imgui.h
-    ${CMAKE_SOURCE_DIR}/src/libs/imgui/imconfig.h
+    ${PROJECT_SOURCE_DIR}/src/libs/imgui/imgui.h
+    ${PROJECT_SOURCE_DIR}/src/libs/imgui/imconfig.h
     )
 
 dependency_link (

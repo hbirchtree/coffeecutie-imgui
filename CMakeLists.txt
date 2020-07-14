@@ -18,7 +18,7 @@ dependency_get (
     )
 
 set ( IMGUI_DIR
-    ${CMAKE_SOURCE_DIR}/src/libs/imgui
+    ${PROJECT_SOURCE_DIR}/src/libs/imgui
     )
 
 if(BUILD_LIBRARIES)

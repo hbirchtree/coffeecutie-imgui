@@ -13,11 +13,8 @@ compiles:
 env:
   global:
   - MAKEFILE_DIR=toolchain/makers
-  - DEPENDENCIES=
   - CONFIGURATION=Release
   matrix:
-  - BUILDVARIANT=android.armv7a.kitkat.gles2
-  - BUILDVARIANT=android.armv8a.nougat.gles3
   - BUILDVARIANT=emscripten.wasm
   - BUILDVARIANT=fedora.amd64
   - BUILDVARIANT=raspberry.armhf
@@ -27,10 +24,6 @@ env:
   - BUILDVARIANT=osx
 matrix:
   exclude:
-  - os: osx
-    env: BUILDVARIANT=android.armv7a.kitkat.gles2
-  - os: osx
-    env: BUILDVARIANT=android.armv8a.nougat.gles3
   - os: osx
     env: BUILDVARIANT=emscripten.wasm
   - os: osx

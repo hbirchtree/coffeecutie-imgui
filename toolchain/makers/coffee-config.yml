@@ -5,7 +5,6 @@
   - -DBUILD_BINARIES=$(env:GENERATE_PROGRAMS)
   - -DSKIP_GRAPHIC_TESTS=$(env:HEADLESS)
 +container-opts:
-    #- -v $(dependencies.native-libs.root):$(dependencies.native-libs.target):ro
   - -v $(project.src):$(container.src):ro
   - -v $(project.install):$(container.install):rw
   - -v $(project.build)/$(target-name):$(container.build):rw
@@ -47,15 +46,16 @@ testing.linux.*:
 .*ubuntu.amd64.*:
   +cmake-opts:
     - -DMKSQUASH_PROGRAM=/usr/bin/mksquashfs
-    - -DAPPIMAGE_RUNTIME_BINARY=$(env:NATIVE_LIBRARY_DIR)/$(build.prettyname)/util/x86_64-linux-gnu/runtime
     - -DGENERATE_APPIMAGE=ON
 .*android.*:
   +cmake-opts:
     - -DBUILD_GLES=ON
-    - -DBUILD_GLES_20=$(android.gles20)
     - -DBUILD_ANATIVE=ON
     - -DBUILD_TESTS=OFF
     - -DBUILD_SDL2=OFF
+  .*(gingerbread|v19).*:
+    +cmake-opts:
+      - -DBUILD_GLES_20=ON
   ^((?!\$\(shell\)).)*$:
     =target: multi.ensureinstall
   =cmake-target:
@@ -77,13 +77,13 @@ gamecube.*:
     - -DBUILD_OPENGL=OFF
     - -DBUILD_GRAPHICS_COMMON=OFF
     - -DBUILD_BLAM=OFF
-    - -DBUILD_CPP14=ON
+    - -DBUILD_GX=ON
 .*maemo.*:
   +cmake-opts:
     - -DBUILD_SDL2=OFF
     - -DBUILD_X11=ON
     - -DBUILD_EGL=ON
-.*(ubuntu|fedora|coverage|testing.linux|android|docs|steam|raspberry|emscripten|osx).*:
+.*(ubuntu|fedora|coverage|testing.linux|docs|steam|osx).*:
   +cmake-opts:
     - -DBUILD_ASSIMP=ON
 (ubuntu.amd64|osx).*:
