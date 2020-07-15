@@ -295,9 +295,10 @@ inline T const& C(c_cptr d)
     return *(C_FCAST<T const*>(d));
 }
 
-void ImGui_InputHandle(CIEvent const& ev, c_ptr data)
+void ImGui_InputHandle(CIEvent& ev, c_ptr data)
 {
-    auto io = &ImGui::GetIO();
+    auto io      = &ImGui::GetIO();
+    bool handled = true;
 
     switch(ev.type)
     {
@@ -407,7 +408,14 @@ void ImGui_InputHandle(CIEvent const& ev, c_ptr data)
         break;
     }
     default:
+        handled = false;
         break;
+    }
+
+    if(handled && (io->WantCaptureMouse || io->WantCaptureKeyboard))
+    {
+        /* Discard the event for all other handlers */
+        ev.type = CIEvent::NoneType;
     }
 }
 
