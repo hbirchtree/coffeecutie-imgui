@@ -5,7 +5,7 @@ coffee_library (
     imgui_binding.cpp
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
-    ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
 
     LIBRARIES
     Core
@@ -17,6 +17,12 @@ coffee_library (
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/include>
     $<INSTALL_INTERFACE:include>
     )
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    target_sources ( ImGui PRIVATE
+        ${IMGUI_DIR}/imgui_demo.cpp
+        )
+endif()
 
 target_compile_definitions ( ImGui PUBLIC
     -DCOFFEE_IMGUI_VERSION="${COFFEE_BUILD_STRING}"

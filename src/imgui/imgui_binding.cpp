@@ -368,10 +368,10 @@ void ImGui_InputHandle(CIEvent& ev, c_ptr data)
 
             io->KeysDown[ev.key] = ev.mod & CIKeyEvent::PressedModifier;
 
-            io->KeyAlt   = ev.mod & CIKeyEvent::LAltModifier;
-            io->KeyCtrl  = ev.mod & CIKeyEvent::LCtrlModifier;
-            io->KeyShift = ev.mod & CIKeyEvent::LShiftModifier;
-            io->KeySuper = ev.mod & CIKeyEvent::SuperModifier;
+//            io->KeyAlt   = ev.mod & CIKeyEvent::LAltModifier;
+//            io->KeyCtrl  = ev.mod & CIKeyEvent::LCtrlModifier;
+//            io->KeyShift = ev.mod & CIKeyEvent::LShiftModifier;
+//            io->KeySuper = ev.mod & CIKeyEvent::SuperModifier;
 
             switch(ev.key)
             {
@@ -446,10 +446,11 @@ static void SetStyle()
 
     return;
 
-    style.Colors[ImGuiCol_Text]           = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    style.Colors[ImGuiCol_TextDisabled]   = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    style.Colors[ImGuiCol_WindowBg]       = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
-    style.Colors[ImGuiCol_ChildWindowBg]  = ImVec4(1.00f, 1.00f, 1.00f, 0.01f);
+    style.Colors[ImGuiCol_Text]         = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    style.Colors[ImGuiCol_TextDisabled] = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+    style.Colors[ImGuiCol_WindowBg]     = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
+    //   style.Colors[ImGuiCol_ChildWindowBg]  = ImVec4(1.00f, 1.00f, 1.00f,
+    //   0.01f);
     style.Colors[ImGuiCol_PopupBg]        = ImVec4(0.00f, 0.00f, 0.00f, 0.99f);
     style.Colors[ImGuiCol_Border]         = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
     style.Colors[ImGuiCol_BorderShadow]   = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
@@ -467,7 +468,8 @@ static void SetStyle()
         ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
     style.Colors[ImGuiCol_ScrollbarGrabActive] =
         ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
-    style.Colors[ImGuiCol_ComboBg]    = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+    //    style.Colors[ImGuiCol_ComboBg]    =
+    //    ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_CheckMark]  = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
     style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
     style.Colors[ImGuiCol_SliderGrabActive] =
@@ -478,19 +480,21 @@ static void SetStyle()
     style.Colors[ImGuiCol_Header]        = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
     style.Colors[ImGuiCol_HeaderHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.25f);
     style.Colors[ImGuiCol_HeaderActive]  = ImVec4(1.00f, 1.00f, 1.00f, 0.15f);
-    style.Colors[ImGuiCol_Column]        = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_ColumnHovered] = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_ColumnActive]  = ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_ResizeGrip]    = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
+    //    style.Colors[ImGuiCol_Column]        = ImVec4(1.00f, 1.00f, 1.00f,
+    //    0.00f); style.Colors[ImGuiCol_ColumnHovered] =
+    //    ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
+    //    style.Colors[ImGuiCol_ColumnActive]  = ImVec4(1.00f, 1.00f, 1.00f,
+    //    0.00f);
+    style.Colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 1.00f, 1.00f, 0.05f);
     style.Colors[ImGuiCol_ResizeGripHovered] =
         ImVec4(1.00f, 1.00f, 1.00f, 0.10f);
     style.Colors[ImGuiCol_ResizeGripActive] =
         ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
-    style.Colors[ImGuiCol_CloseButton] = ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
-    style.Colors[ImGuiCol_CloseButtonHovered] =
-        ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    style.Colors[ImGuiCol_CloseButtonActive] =
-        ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
+    //    style.Colors[ImGuiCol_CloseButton] = ImVec4(1.00f, 1.00f, 1.00f,
+    //    0.20f); style.Colors[ImGuiCol_CloseButtonHovered] =
+    //        ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
+    //    style.Colors[ImGuiCol_CloseButtonActive] =
+    //        ImVec4(1.00f, 1.00f, 1.00f, 0.20f);
     style.Colors[ImGuiCol_PlotLines] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     style.Colors[ImGuiCol_PlotLinesHovered] =
         ImVec4(1.00f, 1.00f, 1.00f, 0.00f);
@@ -522,7 +526,7 @@ static void SetStyle()
     style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.f, 1.f, 1.f, 1.f);
     style.Colors[ImGuiCol_PlotLinesHovered]     = ImVec4(1.f, 1.f, 1.f, 1.f);
 
-    style.Colors[ImGuiCol_ComboBg] = ImVec4(.0f, .0f, .0f, 1.00f);
+    //    style.Colors[ImGuiCol_ComboBg] = ImVec4(.0f, .0f, .0f, 1.00f);
 
     style.Colors[ImGuiCol_Border] = ImVec4(.9f, .9f, .9f, 1.f);
 }
@@ -732,10 +736,14 @@ bool Init(Components::EntityContainer& container)
 {
     DProfContext _(IM_API "Initializing state");
 
+    ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigDockingWithShift    = true;
+    io.ConfigDockingAlwaysTabBar = true;
+
     /* io is statically allocated, this is safe */
-    auto io_ptr = &io;
     container.service<comp_app::BasicEventBus<CIEvent>>()->addEventData(
         {100, ImGui_InputHandle});
 
@@ -767,7 +775,7 @@ void Shutdown()
     imgui_error_code ec;
 
     InvalidateDeviceObjects(ec);
-    ImGui::Shutdown();
+    ImGui::DestroyContext();
 }
 
 void NewFrame(Components::EntityContainer& container)
@@ -783,7 +791,7 @@ void NewFrame(Components::EntityContainer& container)
         im_data = C_DCAST<ImGuiData>(State::PeekState("im_data").get());
     }
 
-    C_ERROR_CHECK(ec);
+    C_ERROR_CHECK(ec)
 
     ImGuiIO& io = ImGui::GetIO();
 
