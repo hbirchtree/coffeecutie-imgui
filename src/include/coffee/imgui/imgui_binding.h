@@ -13,6 +13,11 @@
 #include <imgui.h>
 
 namespace imgui {
+namespace gfx {
+
+using namespace gleam;
+
+}
 namespace detail {
 
 using namespace Coffee::Components;
@@ -22,7 +27,7 @@ using type_safety::type_list_t;
 struct ImGuiWidget
 {
     using value_type = ImGuiWidget;
-    using type       = Allocators::VectorContainer<ImGuiWidget>;
+    using type       = alloc::VectorContainer<ImGuiWidget>;
 
     std::string_view name;
     std::function<void(EntityContainer&, time_point const&, duration const&)>
@@ -35,22 +40,22 @@ struct ImGuiDataDeleter
     void operator()(ImGuiData* p);
 };
 
-struct ImGuiSystem : RestrictedSubsystem<
-                         ImGuiSystem,
-                         SubsystemManifest<
-                             type_safety::type_list_t<ImGuiWidget>,
-                             type_safety::empty_list_t,
-                             type_safety::type_list_t<
-                                 comp_app::DisplayInfo,
-                                 comp_app::KeyboardInput,
-                                 comp_app::MouseInput,
-                                 comp_app::TouchInput,
-                                 comp_app::Windowing>>>,
+using ImGuiManifest = SubsystemManifest<
+    type_safety::type_list_t<ImGuiWidget>,
+    type_safety::empty_list_t,
+    type_safety::type_list_t<
+        comp_app::DisplayInfo,
+        comp_app::KeyboardInput,
+        comp_app::MouseInput,
+        comp_app::TouchInput,
+        comp_app::Windowing>>;
+
+struct ImGuiSystem : RestrictedSubsystem<ImGuiSystem, ImGuiManifest>,
                      comp_app::AppLoadableService
 {
     ImGuiSystem(gleam::api& api);
 
-    using type = ImGuiSystem;
+    using type  = ImGuiSystem;
 
     virtual const ImGuiSystem& get() const final
     {
@@ -71,10 +76,12 @@ struct ImGuiSystem : RestrictedSubsystem<
   private:
     std::unique_ptr<ImGuiData, ImGuiDataDeleter> m_im_data;
 
-    gleam::api& m_api;
+    gfx::api& m_api;
     time_point  m_previousTime;
     bool        m_textInputActive;
 };
+
+static_assert(is_restricted_subsystem<ImGuiSystem>);
 
 } // namespace detail
 

@@ -114,27 +114,27 @@ namespace imgui::detail {
 
 struct ImGuiData
 {
-    ImGuiData(gleam::api& api) :
+    ImGuiData(gfx::api& api) :
         vao(api.alloc_vertex_array()), pipeline(api.alloc_program()),
         vertices(api.alloc_buffer(
-            gleam::buffers::vertex, RSCA::Streaming | RSCA::WriteOnly)),
+            gfx::buffers::vertex, RSCA::Streaming | RSCA::WriteOnly)),
         elements(api.alloc_buffer(
-            gleam::buffers::vertex, RSCA::Streaming | RSCA::WriteOnly)),
+            gfx::buffers::vertex, RSCA::Streaming | RSCA::WriteOnly)),
         font_atlas(api.alloc_texture(
-            gleam::textures::d2,
+            gfx::textures::d2,
             typing::pixels::PixDesc(typing::pixels::PixFmt::RGBA8),
             1)),
         font_sampler(font_atlas->sampler())
     {
     }
 
-    ShPtr<gleam::vertex_array_t> vao;
-    ShPtr<gleam::program_t>      pipeline;
-    ShPtr<gleam::buffer_t>       vertices;
-    ShPtr<gleam::buffer_t>       elements;
+    ShPtr<gfx::vertex_array_t> vao;
+    ShPtr<gfx::program_t>      pipeline;
+    ShPtr<gfx::buffer_t>       vertices;
+    ShPtr<gfx::buffer_t>       elements;
 
-    ShPtr<gleam::texture_2d_t> font_atlas;
-    ShPtr<gleam::sampler_t>    font_sampler;
+    ShPtr<gfx::texture_2d_t> font_atlas;
+    ShPtr<gfx::sampler_t>    font_sampler;
 
     Matf4 projection_matrix;
 
@@ -143,8 +143,6 @@ struct ImGuiData
 
     u32 _pad;
 };
-
-} // namespace imgui::detail
 
 template<typename T>
 static auto to_bytes(ImVector<T>& data)
@@ -157,8 +155,7 @@ static auto to_bytes(ImVector<T>& data)
 // or lines are blurry when integrating ImGui in your engine:
 // - in your Render function, try translating your projection matrix by
 // (0.5f,0.5f) or (0.375f,0.375f)
-static void draw_items(
-    ImGuiData* im_data, ImDrawData* draw_data, gleam::api& api)
+static void draw_items(ImGuiData* im_data, ImDrawData* draw_data, gfx::api& api)
 {
     using namespace std::string_view_literals;
 
@@ -203,6 +200,8 @@ static void draw_items(
     im_data->projection_matrix.d[1] = Vecf4{0, 2.f / -io.DisplaySize.y, 0, 0};
     im_data->projection_matrix.d[2] = Vecf4{0, 0, -1.f, 0};
     im_data->projection_matrix.d[3] = Vecf4{-1.f, 1.f, 0, 1.f};
+
+    auto const& ro_projection = im_data->projection_matrix;
 
     //    GFX::D_CALL dc(true, false);
     //    GFX::D_DATA dd;
@@ -259,23 +258,24 @@ static void draw_items(
                                 },
                             },
                     },
-                    gleam::make_sampler_list(gleam::sampler_definition_t{
+                    gfx::make_sampler_list(gfx::sampler_definition_t{
                         typing::graphics::ShaderStage::Fragment,
                         {"Texture"sv, 0},
                         im_data->font_sampler}),
-                    gleam::make_uniform_list<const Matf4>(
+                    gfx::make_uniform_list(
                         typing::graphics::ShaderStage::Vertex,
-                        {{"ProjMtx"sv, 1},
-                            mem_chunk<byte_t const>::ofBytes(im_data->projection_matrix)}),
-                    gleam::view_state{
-                        .scissor = Veci4{
+                        gfx::uniform_pair<const Matf4>{
+                            {"ProjMtx"sv, 1},
+                            semantic::SpanOne(ro_projection)}),
+                    gfx::view_state{
+                        .scissor = Veci4(
                             cmd.ClipRect.x,
                             fb_height - cmd.ClipRect.w,
                             cmd.ClipRect.z - cmd.ClipRect.x,
-                            cmd.ClipRect.w - cmd.ClipRect.y},
+                            cmd.ClipRect.w - cmd.ClipRect.y),
                     },
-                    gleam::cull_state{},
-                    gleam::blend_state{}
+                    gfx::cull_state{},
+                    gfx::blend_state{}
                     );
             }
         }
@@ -290,7 +290,7 @@ static void draw_items(
     //    GFX::SetDepthState(prev_dept);
 }
 
-static void CreateFontsTexture(ImGuiData* im_data, gleam::api& api)
+static void CreateFontsTexture(ImGuiData* im_data, gfx::api& api)
 {
     DProfContext _(IM_API "Creating font atlas");
     auto         __ = api.debug().scope(IM_API "Create font atlas");
@@ -320,7 +320,7 @@ static void CreateFontsTexture(ImGuiData* im_data, gleam::api& api)
 }
 
 static std::optional<ImError> CreateDeviceObjects(
-    ImGuiData* im_data, gleam::api& api)
+    ImGuiData* im_data, gfx::api& api)
 {
     DProfContext _(IM_API "Creating device data");
 
@@ -370,11 +370,11 @@ static std::optional<ImError> CreateDeviceObjects(
         auto& pip = im_data->pipeline;
 
         pip->add(
-            gleam::program_t::stage_t::Vertex,
+            gfx::program_t::stage_t::Vertex,
             api.alloc_shader(
                 mem_chunk<byte_t const>::ofContainer(vertex_shader)));
         pip->add(
-            gleam::program_t::stage_t::Fragment,
+            gfx::program_t::stage_t::Fragment,
             api.alloc_shader(
                 mem_chunk<byte_t const>::ofContainer(fragment_shader)));
         if(auto res = pip->compile(); res.has_error())
@@ -385,7 +385,7 @@ static std::optional<ImError> CreateDeviceObjects(
 
     do
     {
-        using attribute_flags = gleam::vertex_attribute::attribute_flags;
+        using attribute_flags = gfx::vertex_attribute::attribute_flags;
         DProfContext _(IM_API "Creating vertex array object");
         auto&        a = im_data->vao;
 
@@ -432,8 +432,8 @@ static std::optional<ImError> CreateDeviceObjects(
                  .offset = 0,
                  .id     = 0,
              }});
-        a->set_buffer(gleam::buffers::vertex, im_data->vertices, 0);
-        a->set_buffer(gleam::buffers::element, im_data->elements);
+        a->set_buffer(gfx::buffers::vertex, im_data->vertices, 0);
+        a->set_buffer(gfx::buffers::element, im_data->elements);
     } while(false);
 
     CreateFontsTexture(im_data, api);
@@ -441,7 +441,7 @@ static std::optional<ImError> CreateDeviceObjects(
     return std::nullopt;
 }
 
-static void InvalidateDeviceObjects(ImGuiData* im_data, gleam::api& api)
+static void InvalidateDeviceObjects(ImGuiData* im_data, gfx::api& api)
 {
     DProfContext _(IM_API "Invalidating device objects");
     auto         __ = api.debug().scope(IM_API "Invalidating device objects");
@@ -725,14 +725,12 @@ static void SetStyle()
     style.Colors[ImGuiCol_Border] = ImVec4(.9f, .9f, .9f, 1.f);
 }
 
-namespace imgui::detail {
-
 void ImGuiDataDeleter::operator()(ImGuiData* p)
 {
     delete p;
 }
 
-ImGuiSystem::ImGuiSystem(gleam::api& api) : m_api(api)
+ImGuiSystem::ImGuiSystem(gfx::api& api) : m_api(api)
 {
 }
 
@@ -761,6 +759,50 @@ void ImGuiSystem::load(entity_container& e, comp_app::app_error& ec)
     m_textInputActive = false;
 
     e.register_component_inplace<ImGuiWidget>();
+
+    auto ibus = e.service<comp_app::BasicEventBus<CIEvent>>();
+
+    ibus->addEventFunction<CIMouseButtonEvent>(
+        0, [](CIEvent& e, CIMouseButtonEvent* mouse) {
+            ImGuiIO& io = ImGui::GetIO();
+
+            u32 index = 0;
+            switch(mouse->btn)
+            {
+            case CIMouseButtonEvent::LeftButton:
+                index = 0;
+                break;
+            case CIMouseButtonEvent::MiddleButton:
+                index = 1;
+                break;
+            case CIMouseButtonEvent::RightButton:
+                index = 2;
+                break;
+            default:
+                break;
+            }
+
+            bool pressed
+                = static_cast<bool>(mouse->mod & CIMouseButtonEvent::Pressed);
+            bool double_press = static_cast<bool>(
+                mouse->mod & CIMouseButtonEvent::DoubleClick);
+
+            io.MouseDown[index] = pressed;
+
+            if(pressed)
+            {
+                io.MouseClicked[index]     = pressed;
+                io.MouseClickedPos[index]  = io.MousePos;
+                io.MouseClickedTime[index] = ImGui::GetTime();
+                cDebug("Clicked {0}", index);
+            }
+
+            if(double_press)
+            {
+                io.MouseDoubleClicked[index] = double_press;
+                io.MouseDoubleClickTime      = ImGui::GetTime();
+            }
+        });
 }
 
 void ImGuiSystem::unload(entity_container& e, comp_app::app_error& ec)
@@ -804,23 +846,25 @@ void ImGuiSystem::start_restricted(Proxy& p, time_point const& t)
     auto pos        = mouse->position();
     io.MousePosPrev = io.MousePos;
     io.MousePos     = ImVec2(pos.x / uiScaling, pos.y / uiScaling);
-    if(!io.MouseClicked[0])
-        io.MouseClicked[0] = mouse->buttons() & CIMouseButtonEvent::LeftButton;
-    if(!io.MouseClicked[1])
-        io.MouseClicked[1]
-            = mouse->buttons() & CIMouseButtonEvent::MiddleButton;
-    if(!io.MouseClicked[2])
-        io.MouseClicked[2] = mouse->buttons() & CIMouseButtonEvent::RightButton;
-    for(auto i : Range<>{5})
-        if(io.MouseClicked[i])
-        {
-            io.MouseDown[i]        = true;
-            io.MouseClickedPos[i]  = io.MousePos;
-            io.MouseClickedTime[i] = time;
-        } else
-        {
-            io.MouseDown[i] = false;
-        }
+    //    if(!io.MouseClicked[0])
+    //        io.MouseClicked[0] = mouse->buttons() &
+    //        CIMouseButtonEvent::LeftButton;
+    //    if(!io.MouseClicked[1])
+    //        io.MouseClicked[1]
+    //            = mouse->buttons() & CIMouseButtonEvent::MiddleButton;
+    //    if(!io.MouseClicked[2])
+    //        io.MouseClicked[2] = mouse->buttons() &
+    //        CIMouseButtonEvent::RightButton;
+    //    for(auto i : Range<>{5})
+    //        if(io.MouseClicked[i])
+    //        {
+    //            io.MouseDown[i]        = true;
+    //            io.MouseClickedPos[i]  = io.MousePos;
+    //            io.MouseClickedTime[i] = time;
+    //        } else
+    //        {
+    //            io.MouseDown[i] = false;
+    //        }
 
     io.MouseWheel     = m_im_data->scroll;
     m_im_data->scroll = 0.0f;
